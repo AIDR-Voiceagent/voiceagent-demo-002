@@ -3,84 +3,300 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Voice Agent Demo</title>
+    <title>AI Demo – Voice Agent</title>
+
+    <script src="https://unpkg.com/@vapi-ai/web/dist/vapi.min.js"></script>
+
     <style>
         body {
-            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #000;
+            color: #fff;
+            font-family: Arial, Helvetica, sans-serif;
             text-align: center;
-            background: #f5f5f5;
-            padding: 20px;
         }
-        h1 {
-            color: #333;
+
+        .container {
+            max-width: 900px;
+            margin: 35px auto;
+            padding: 30px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.03);
+            box-shadow: 0 0 18px rgba(255,255,255,0.18);
         }
+
         button {
-            background: #4CAF50;
+            padding: 14px 24px;
+            margin: 10px;
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.4);
             color: white;
-            padding: 15px 20px;
-            border: none;
-            border-radius: 8px;
-            font-size: 18px;
+            border-radius: 6px;
+            font-size: 16px;
             cursor: pointer;
-            margin-top: 20px;
+            transition: 0.25s ease;
         }
+
         button:hover {
-            background: #45a049;
+            background: rgba(255,255,255,0.22);
         }
+
         #status {
-            margin-top: 25px;
-            font-size: 18px;
-            color: #444;
+            margin-top: 18px;
+            font-size: 17px;
+            opacity: 0.9;
+        }
+
+        #transcript-box {
+            margin-top: 30px;
+            height: 280px;
+            overflow-y: auto;
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.05);
+            text-align: left;
+            font-size: 15px;
+            line-height: 1.45;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .bubble {
+            max-width: 78%;
+            margin: 8px 0;
+            padding: 10px 14px;
+            border-radius: 12px;
+        }
+
+        .user {
+            background: #1e1e1e;
+            margin-left: auto;
+        }
+
+        .agent {
+            background: #2d2d2d;
+            margin-right: auto;
+        }
+
+        #micBubble {
+            width: 70px;
+            height: 70px;
+            background: #ffffff22;
+            border: 2px solid #ffffff55;
+            border-radius: 50%;
+            margin: 20px auto;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            font-size:14px;
+            font-weight:600;
+            color:white;
+            transition: transform 0.12s ease-out, box-shadow 0.12s ease-out;
+        }
+
+        #vuFill {
+            height: 100%;
+            width: 0%;
+            background: #00ffcc;
+            transition: width 0.05s linear;
+        }
+
+        #vuBar {
+            width: 260px;
+            height: 14px;
+            background: #2a2a2a;
+            margin: 0 auto;
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        #volumeControl {
+            margin-top: 15px;
+            width: 240px;
         }
     </style>
 </head>
+
 <body>
-    <h1>Voice Agent Demo</h1>
+<div class="container">
 
-    <p>Drücke den Button und sprich — der AI-Agent antwortet dir.</p>
+    <h2>AI Voice Demo</h2>
 
-    <button onclick="startVoice()">🎤 Start</button>
+    <button id="startBtn">Verbinden</button>
+    <button id="stopBtn" disabled>Stop</button>
 
-    <div id="status"></div>
+    <div id="status">Bereit</div>
 
-    <script>
-        async function startVoice() {
-            const status = document.getElementById("status");
-            status.textContent = "Verbinde mit dem Server...";
+    <!-- Mikrofon Bubble -->
+    <div id="micBubble">MIC</div>
 
-            try {
-                const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-                recognition.lang = "de-DE";
-                recognition.start();
+    <!-- VU-Meter -->
+    <div id="vuBar">
+        <div id="vuFill"></div>
+    </div>
 
-                recognition.onresult = async (event) => {
-                    const text = event.results[0][0].transcript;
-                    status.textContent = "Du sagst: " + text;
+    <!-- Volume -->
+    <div>
+        <label>Lautstärke</label>
+        <br>
+        <input id="volumeControl" type="range" min="0" max="100" value="80">
+    </div>
 
-                    const response = await fetch("https://api.openai.com/v1/responses", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "Authorization": "Bearer sk-TEST-DEIN-API-KEY-HIER"
-                        },
-                        body: JSON.stringify({
-                            model: "gpt-4o-mini",
-                            input: text
-                        })
-                    });
+    <!-- Transcript -->
+    <h3 style="margin-top:35px;">Transkript</h3>
+    <div id="transcript-box"></div>
 
-                    const data = await response.json();
-                    const answer = data.output[0].content[0].text;
-                    status.textContent = "Agent antwortet: " + answer;
+</div>
 
-                    const speech = new SpeechSynthesisUtterance(answer);
-                    speech.lang = "de-DE";
-                    speechSynthesis.speak(speech);
-                };
-            } catch (err) {
-                status.textContent = "Fehler: " + err;
-            }
+
+<script>
+/* ================================================
+      DOM ELEMENTS
+================================================ */
+const startBtn = document.getElementById("startBtn");
+const stopBtn = document.getElementById("stopBtn");
+const statusEl = document.getElementById("status");
+const transcriptBox = document.getElementById("transcript-box");
+const micBubble = document.getElementById("micBubble");
+const vuFill = document.getElementById("vuFill");
+const volumeControl = document.getElementById("volumeControl");
+
+let session = null;
+let micStream = null;
+let analyser = null;
+let dataArray = null;
+let agentAudio = null;
+
+
+/* ================================================
+      TRANSCRIPT BUBBLES
+================================================ */
+function addBubble(text, sender) {
+    const div = document.createElement("div");
+    div.classList.add("bubble");
+    div.classList.add(sender === "user" ? "user" : "agent");
+    div.textContent = text;
+
+    transcriptBox.appendChild(div);
+    transcriptBox.scrollTop = transcriptBox.scrollHeight;
+}
+
+
+/* ================================================
+      AUDIO VISUALIZATION (VU + BUBBLE)
+================================================ */
+function startViz(stream) {
+    const ctx = new AudioContext();
+    const src = ctx.createMediaStreamSource(stream);
+
+    analyser = ctx.createAnalyser();
+    analyser.fftSize = 256;
+    dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+    src.connect(analyser);
+
+    function draw() {
+        requestAnimationFrame(draw);
+        analyser.getByteTimeDomainData(dataArray);
+
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+            const val = dataArray[i] - 128;
+            sum += val * val;
         }
-    </script>
+
+        const level = Math.min(1, Math.sqrt(sum / dataArray.length) / 50);
+
+        vuFill.style.width = (level * 100) + "%";
+
+        if (level > 0.25) {
+            micBubble.style.transform = "scale(1.22)";
+            micBubble.style.boxShadow = "0 0 18px #00ffcc";
+        } else {
+            micBubble.style.transform = "scale(1)";
+            micBubble.style.boxShadow = "none";
+        }
+    }
+
+    draw();
+}
+
+
+/* ================================================
+      START BUTTON
+================================================ */
+startBtn.addEventListener("click", async () => {
+    startBtn.disabled = true;
+    statusEl.innerText = "Verbinde…";
+
+    try {
+        micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        startViz(micStream);
+
+        session = await Vapi.createWebRTCSession({
+            apiKey: "3857a4fd-9664-470b-b523-759ca2db2753",
+
+            onTranscription: (msg) => {
+                addBubble(msg.text, msg.sender);
+            },
+
+            onAgentResponseStart: () => {
+                statusEl.innerText = "Agent spricht…";
+            },
+
+            onAgentResponseStop: () => {
+                statusEl.innerText = "Agent fertig.";
+            }
+        });
+
+        await session.startCall(micStream);
+
+        statusEl.innerText = "Verbunden";
+        stopBtn.disabled = false;
+
+        agentAudio = document.createElement("audio");
+        agentAudio.autoplay = true;
+        document.body.appendChild(agentAudio);
+
+        session.setAudioElement(agentAudio);
+
+    } catch (e) {
+        console.error(e);
+        statusEl.innerText = "Fehler beim Verbinden";
+        startBtn.disabled = false;
+    }
+});
+
+
+/* ================================================
+      STOP BUTTON
+================================================ */
+stopBtn.addEventListener("click", async () => {
+    stopBtn.disabled = true;
+    statusEl.innerText = "Beende…";
+
+    try {
+        if (session) await session.stopCall();
+    } catch (e) {}
+
+    if (micStream) {
+        micStream.getTracks().forEach(t => t.stop());
+        micStream = null;
+    }
+
+    statusEl.innerText = "Verbindung beendet";
+    startBtn.disabled = false;
+});
+
+
+/* ================================================
+      VOLUME
+================================================ */
+volumeControl.addEventListener("input", () => {
+    if (agentAudio) agentAudio.volume = volumeControl.value / 100;
+});
+</script>
+
 </body>
 </html>
+
