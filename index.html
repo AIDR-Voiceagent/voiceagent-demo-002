@@ -67,11 +67,11 @@
         }
 
         .volume-bar {
-            width: 60%;
-            height: 8px;
+            width: 200px; /* kürzer wie im Screenshot */
+            height: 6px;
             background-color: #333;
             border-radius: 5px;
-            margin: 0px auto 5px auto;
+            margin: 5px auto 12px auto;
             position: relative;
         }
 
@@ -83,34 +83,33 @@
         }
 
         .transcript-title {
-            margin-top: 30px;
-            font-size: 18px;
+            margin-top: 15px;
+            font-size: 16px;
             font-weight: 600;
+            opacity: 0.9;
         }
 
         .transcript-box {
-    width: 70%;                 /* NICHT mehr 100% → sonst wird sie zu breit */
-    height: 330px;              /* etwas höher wie im alten Screenshot */
-    background-color: #111;
-    border-radius: 14px;        /* etwas runder wie beim alten Style */
-    margin: 20px auto 0 auto;   /* zentriert die Box exakt in der Mitte */
-    overflow-y: auto;
-    padding: 18px;
-    text-align: left;
-    font-size: 15px;
-    border: 1px solid #222;     /* softerer Rahmen wie im alten Screenshot */
-    box-shadow: 0px 0px 12px rgba(0,0,0,0.6); /* wirkt cleaner & hochwertiger */
-}
-
+            width: 260px; /* NICHT breit – wie im Screenshot */
+            height: 180px; /* kleiner und rechteckiger */
+            background-color: #111;
+            border-radius: 10px;
+            margin: 10px auto 0 auto;
+            overflow-y: auto;
+            padding: 12px;
+            text-align: left;
+            font-size: 14px;
+            border: 1px solid #333;
+        }
 
         .msg-user {
             color: #00ffaa;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         .msg-agent {
             color: #fff;
             opacity: 0.9;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
     </style>
 </head>
@@ -198,4 +197,5 @@
 
 </body>
 </html>
+
 
