@@ -1,309 +1,199 @@
-<!doctype html>
-
+<!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Voice Agent Demo</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Voice Demo</title>
 
-  <style>
-    :root{
-      --bg:#000;
-      --panel:#0b0b0b;
-      --muted:#9aa6b2;
-      --accent:#00ff9d;
-      --accent-strong:#00c77f;
-      --danger:#ff6b6b;
-      --glass: rgba(255,255,255,0.04);
-    }
-    html,body{height:100%;margin:0;background:var(--bg);color:#fff;font-family:Inter,Arial,Helvetica,sans-serif}
-    .wrap{max-width:980px;margin:28px auto;padding:28px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));box-shadow:0 8px 30px rgba(0,0,0,0.6)}
-    h1{margin:0 0 8px;color:var(--accent)}
-    p.lead{color:var(--muted);margin:0 0 18px}
-    .controls{display:flex;gap:12px;align-items:center;margin-top:14px;flex-wrap:wrap}
-    .btn{
-      background:linear-gradient(180deg,var(--panel),#07100a);
-      border:1px solid rgba(255,255,255,0.06);
-      color:#fff;padding:12px 18px;border-radius:10px;font-weight:600;cursor:pointer;
-      box-shadow:0 6px 18px rgba(0,0,0,0.6);
-    }
-    .btn.primary{background:linear-gradient(180deg,var(--accent-strong),var(--accent));color:#001;box-shadow:0 8px 28px rgba(0,255,160,0.08)}
-    .btn:disabled{opacity:0.45;cursor:not-allowed}
-    /* Status + LED */
-    .status-row{display:flex;align-items:center;gap:10px;margin-top:6px}
-    .led{width:12px;height:12px;border-radius:50%;background:#6b6b6b;box-shadow:0 0 6px rgba(0,0,0,0.6)}
-    .status-text{font-weight:700;color:var(--muted)}
-    /* layout columns */
-    .columns{display:grid;grid-template-columns:1fr 360px;gap:22px;margin-top:18px}
-    .panel{background:var(--glass);padding:14px;border-radius:10px;border:1px solid rgba(255,255,255,0.02)}
-    /* mic bubble + VU meter */
-    #micBubble{width:68px;height:68px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);transition:transform .12s,box-shadow .12s}
-    #vuWrap{margin-top:14px}
-    .vuBar{height:12px;background:#222;border-radius:10px;overflow:hidden}
-    .vuFill{height:100%;width:0%;background:linear-gradient(90deg,#00ff9d,#00c77f)}
-    /* transcript */
-    #transcript{height:360px;overflow:auto;border-radius:8px;padding:10px;background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.02)}
-    .bubble{display:inline-block;padding:8px 12px;border-radius:12px;margin:8px 0;max-width:85%;line-height:1.3}
-    .user{background:rgba(255,255,255,0.06);align-self:flex-start;color:#fff}
-    .agent{background:rgba(0,160,255,0.12);align-self:flex-end;color:#e8f9ff;margin-left:auto}
-    /* small controls */
-    .small{font-size:13px;color:var(--muted)}
-    label{font-size:13px;color:var(--muted)}
-    input[type=range]{width:100%}
-    audio{display:none}
-    @media (max-width:900px){.columns{grid-template-columns:1fr}}
-  </style>
+    <style>
+        body {
+            margin: 0;
+            background-color: #000;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100vh;
+            overflow-x: hidden;
+        }
 
+        .container {
+            margin-top: 40px;
+            width: 80%;
+            max-width: 900px;
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        button {
+            background-color: #222;
+            color: white;
+            padding: 10px 28px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            cursor: pointer;
+            margin: 6px;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #333;
+        }
+
+        .mic-bubble {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 2px solid gray;
+            margin: 25px auto 15px auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 600;
+            font-size: 18px;
+            transition: 0.3s;
+            background-color: #111;
+        }
+
+        .mic-active {
+            border-color: #00ffaa;
+            box-shadow: 0 0 10px #00ffaa;
+        }
+
+        .volume-bar {
+            width: 60%;
+            height: 8px;
+            background-color: #333;
+            border-radius: 5px;
+            margin: 0px auto 5px auto;
+            position: relative;
+        }
+
+        .volume-fill {
+            width: 0%;
+            height: 100%;
+            background-color: #00ffaa;
+            border-radius: 5px;
+        }
+
+        .transcript-title {
+            margin-top: 30px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .transcript-box {
+            width: 100%;
+            height: 260px;
+            background-color: #111;
+            border-radius: 12px;
+            margin-top: 10px;
+            overflow-y: auto;
+            padding: 14px;
+            text-align: left;
+            font-size: 15px;
+            border: 1px solid #333;
+        }
+
+        .msg-user {
+            color: #00ffaa;
+            margin-bottom: 10px;
+        }
+        .msg-agent {
+            color: #fff;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
+
 <body>
-  <div class="wrap" role="main">
-    <h1>Voice Agent Demo</h1>
-    <p class="lead">Demo für Kunden – sprich mit dem Agenten. (Design: schwarz/weiß, LED, VU-Meter, Transkript)</p>
+<div class="container">
+    <h1>AI Voice Demo</h1>
 
-```
-<div class="controls">
-  <button id="connectBtn" class="btn primary">Verbinden</button>
-  <button id="stopBtn" class="btn" disabled>Stop</button>
+    <button id="connectBtn">Verbinden</button>
+    <button id="disconnectBtn">Stop</button>
 
-  <div style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end">
-    <div class="status-row">
-      <div id="statusLed" class="led" aria-hidden="true"></div>
-      <div id="statusText" class="status-text">Bereit</div>
+    <div id="errorMsg" style="margin-top: 10px; color: #ff5555;"></div>
+
+    <div class="mic-bubble" id="micBubble">MIC</div>
+
+    <div class="volume-bar">
+        <div class="volume-fill" id="volFill"></div>
     </div>
-    <div class="small" style="margin-top:6px">Agent: <strong id="assistantLabel">geladen…</strong></div>
-  </div>
+
+    <div class="transcript-title">Transkript</div>
+    <div class="transcript-box" id="transcriptBox"></div>
 </div>
 
-<div class="columns">
-  <!-- LEFT: main interactive -->
-  <div>
-    <div class="panel">
-      <div style="display:flex;gap:14px;align-items:center">
-        <div id="micBubble">MIC</div>
-        <div style="flex:1">
-          <div id="vuWrap">
-            <div class="vuBar"><div id="vuFill" class="vuFill"></div></div>
-          </div>
-          <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
-            <label for="volumeControl">Lautstärke</label>
-            <input id="volumeControl" type="range" min="0" max="100" value="80" style="flex:1">
-          </div>
-        </div>
-      </div>
-
-      <div style="margin-top:18px">
-        <div class="small">Transkript</div>
-        <div id="transcript"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- RIGHT: mirror / quick info -->
-  <div>
-    <div class="panel">
-      <div style="font-size:14px;color:var(--muted);margin-bottom:8px">Debug / Hinweise</div>
-      <div id="log" style="min-height:140px;white-space:pre-wrap;color:var(--muted);font-size:13px"></div>
-
-      <hr style="margin:12px 0;border:none;border-top:1px solid rgba(255,255,255,0.02)">
-
-      <div style="font-size:13px;color:var(--muted)"><strong>Public Key:</strong><br><code id="pk" style="word-break:break-all">3857a4fd-9664-470b-b523-759ca2db2753</code></div>
-      <div style="margin-top:8px;font-size:13px;color:var(--muted)"><strong>Assistant ID:</strong><br><code id="aid" style="word-break:break-all">9939aaaf-23ff-490a-8daf-665758ff117b</code></div>
-
-      <div style="margin-top:10px;font-size:13px;color:var(--muted)">Wenn Verbindung fehlschlägt: prüfe Console (F12), dass Assistant veröffentlicht ist, und Origins im WAPI Dashboard.</div>
-    </div>
-  </div>
-</div>
-
-<!-- Hidden audio element used for agent output -->
-<audio id="agentAudio" autoplay></audio>
-
-<!-- VAPI widget (fallback / official embed) - keeps widget available for direct embed usage -->
-<vapi-widget id="vapiWidget" assistant-id="9939aaaf-23ff-490a-8daf-665758ff117b" public-key="3857a4fd-9664-470b-b523-759ca2db2753" style="display:none"></vapi-widget>
-<script src="https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js" async></script>
+<script src="https://cdn.jsdelivr.net/npm/@11labs/client@latest/dist/browser/elevenlabs.umd.js"></script>
 
 <script>
-  /***** CONFIG (eingesetzt) *****/
-  const PUBLIC_KEY = "3857a4fd-9664-470b-b523-759ca2db2753";
-  const ASSISTANT_ID = "9939aaaf-23ff-490a-8daf-665758ff117b";
+    let client;
+    let session;
 
-  // DOM
-  const connectBtn = document.getElementById("connectBtn");
-  const stopBtn = document.getElementById("stopBtn");
-  const statusText = document.getElementById("statusText");
-  const statusLed = document.getElementById("statusLed");
-  const micBubble = document.getElementById("micBubble");
-  const vuFill = document.getElementById("vuFill");
-  const volumeControl = document.getElementById("volumeControl");
-  const transcriptBox = document.getElementById("transcript");
-  const logBox = document.getElementById("log");
-  const agentAudio = document.getElementById("agentAudio");
-  document.getElementById("assistantLabel").innerText = ASSISTANT_ID;
+    const connectBtn = document.getElementById("connectBtn");
+    const disconnectBtn = document.getElementById("disconnectBtn");
+    const micBubble = document.getElementById("micBubble");
+    const volFill = document.getElementById("volFill");
+    const transcriptBox = document.getElementById("transcriptBox");
+    const errorMsg = document.getElementById("errorMsg");
 
-  // State
-  let session = null;
-  let localStream = null;
-  let analyser = null;
-  let dataArray = null;
-  let audioContext = null;
-  let rafId = null;
+    const PUBLIC_KEY = "3857a4fd-9664-470b-b523-759ca2db2753";
+    const ASSISTANT_ID = "9939aaaf-23ff-490a-8daf-665758ff117b";
 
-  function log(msg){ logBox.innerText += msg + "\n"; logBox.scrollTop = logBox.scrollHeight; }
-
-  function setStatus(text, colorState){
-    statusText.innerText = text;
-    if(colorState === "ok"){ statusLed.style.background = "linear-gradient(#00ff9d,#00c77f)"; statusLed.style.boxShadow = "0 0 14px rgba(0,255,160,0.12)"; }
-    else if(colorState === "busy"){ statusLed.style.background = "#ffcc00"; statusLed.style.boxShadow = "0 0 8px rgba(255,204,0,0.08)"; }
-    else if(colorState === "err"){ statusLed.style.background = "#ff6b6b"; statusLed.style.boxShadow = "0 0 10px rgba(255,107,107,0.12)"; }
-    else { statusLed.style.background = "#6b6b6b"; statusLed.style.boxShadow = "none"; }
-  }
-
-  setStatus("Bereit","idle");
-
-  /* ===== audio visualizer (VU meter & bubble) ===== */
-  function startVisualizer(stream){
-    audioContext = audioContext || new (window.AudioContext||window.webkitAudioContext)();
-    const source = audioContext.createMediaStreamSource(stream);
-    analyser = audioContext.createAnalyser();
-    analyser.fftSize = 256;
-    const bufferLength = analyser.frequencyBinCount;
-    dataArray = new Uint8Array(bufferLength);
-    source.connect(analyser);
-    function draw(){
-      rafId = requestAnimationFrame(draw);
-      analyser.getByteTimeDomainData(dataArray);
-      // compute RMS
-      let sum = 0;
-      for(let i=0;i<dataArray.length;i++){
-        const v = dataArray[i]-128;
-        sum += v*v;
-      }
-      const rms = Math.sqrt(sum / dataArray.length);
-      const normalized = Math.min(1, rms/20);
-      vuFill.style.width = Math.round(normalized*100) + "%";
-      if(normalized > 0.22){
-        micBubble.style.transform = "scale(1.18)";
-        micBubble.style.boxShadow = "0 0 18px #00ffcc";
-      } else {
-        micBubble.style.transform = "scale(1)";
-        micBubble.style.boxShadow = "none";
-      }
+    function addTranscriptMessage(text, sender) {
+        const div = document.createElement("div");
+        div.className = sender === "user" ? "msg-user" : "msg-agent";
+        div.textContent = text;
+        transcriptBox.appendChild(div);
+        transcriptBox.scrollTop = transcriptBox.scrollHeight;
     }
-    draw();
-  }
 
-  function stopVisualizer(){
-    if(rafId) cancelAnimationFrame(rafId);
-    if(analyser){ analyser.disconnect(); analyser = null; }
-    if(audioContext){ try{ audioContext.close(); }catch(e){} audioContext=null; }
-    vuFill.style.width = "0%";
-    micBubble.style.transform = "scale(1)";
-    micBubble.style.boxShadow = "none";
-  }
+    connectBtn.addEventListener("click", async () => {
+        try {
+            errorMsg.textContent = "";
 
-  /* ====== Connect: try to use global Vapi widget (preferred) or SDK ====== */
-  connectBtn.addEventListener("click", async () => {
-    connectBtn.disabled = true;
-    setStatus("Verbinde…","busy");
-    log("Starte Verbindung...");
+            client = new ElevenLabs.Client({ apiKey: PUBLIC_KEY });
 
-    try {
-      // 1) get microphone
-      localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      startVisualizer(localStream);
-      log("Mikrofon freigegeben.");
+            session = await client.realtime.connect({
+                agentId: ASSISTANT_ID,
+                onOpen: () => console.log("Verbindung geöffnet"),
+                onError: (e) => errorMsg.textContent = "Fehler beim Verbinden",
+                onClose: () => console.log("Verbindung geschlossen"),
+            });
 
-      // 2) attempt to use global widget/SDK if available
-      // If the official widget exposes a global API, it will be used automatically.
-      // Many embed scripts provide a widget object; try to call open() as fallback.
-      const widgetEl = document.getElementById("vapiWidget");
-      if(widgetEl && typeof widgetEl.open === "function"){
-        log("Öffne eingebettetes Widget...");
-        widgetEl.open(); // best-effort: many embeds expose open()
-        setStatus("Verbunden","ok");
-        stopBtn.disabled = false;
-        return;
-      }
+            session.on("message", (msg) => {
+                if (msg.type === "response.input_text.delta") {
+                    addTranscriptMessage(msg.delta, "agent");
+                }
+            });
 
-      // 3) Try to use SDK if available on window (best-effort; SDK signatures may vary)
-      if(window.Vapi && typeof window.Vapi.Client === "function"){
-        log("Found Vapi.Client - versuche SDK-Verbindung...");
-        // NOTE: SDK signatures differ across versions. This is a best-effort attempt.
-        const client = new window.Vapi.Client({ publicKey: PUBLIC_KEY });
-        // create a session for assistant
-        if(typeof client.createSession === "function"){
-          session = await client.createSession({ assistantId: ASSISTANT_ID });
-        } else if(typeof client.startConversation === "function"){
-          session = await client.startConversation({ assistantId: ASSISTANT_ID });
+            session.startSession();
+
+            micBubble.classList.add("mic-active");
+
+        } catch (err) {
+            errorMsg.textContent = "Fehler beim Verbinden";
         }
-        // if session provides setAudio / onTranscription hooks, wire them
-        if(session && typeof session.startCall === "function"){
-          await session.startCall(localStream);
-          if(typeof session.setAudioElement === "function") session.setAudioElement(agentAudio);
-          session.on && session.on("transcript", (t)=> addTranscript(t.text,"agent"));
-        }
-        setStatus("Verbunden","ok");
-        stopBtn.disabled = false;
-        log("SDK-Verbindung hergestellt (best-effort).");
-        return;
-      }
+    });
 
-      // 4) Fallback: open the embedded widget for user interaction (if no programmatic API)
-      if(widgetEl){
-        log("Widget eingeblendet (Benutzer muss ggf. klicken).");
-        widgetEl.style.display = "block";
-        setStatus("Widget geöffnet – bitte manuell verbinden","busy");
-        stopBtn.disabled = false;
-        return;
-      }
+    disconnectBtn.addEventListener("click", () => {
+        try {
+            if (session) session.close();
+        } catch {}
 
-      // if we reach here, no supported client detected
-      throw new Error("Keine eingebettete VAPI-Schnittstelle gefunden. Widget oder SDK nicht verfügbar.");
-    } catch (err) {
-      console.error(err);
-      log("Fehler: " + (err && err.message ? err.message : String(err)));
-      setStatus("Fehler beim Verbinden","err");
-      connectBtn.disabled = false;
-      stopBtn.disabled = true;
-    }
-  });
+        micBubble.classList.remove("mic-active");
+    });
 
-  /* ===== Stop ===== */
-  stopBtn.addEventListener("click", async ()=>{
-    stopBtn.disabled = true;
-    setStatus("Beenden…","busy");
-    log("Stoppe Verbindung...");
-    try{
-      if(session && typeof session.stopCall === "function") await session.stopCall();
-    }catch(e){}
-    if(localStream){ localStream.getTracks().forEach(t=>t.stop()); localStream=null; }
-    stopVisualizer();
-    setStatus("Getrennt","idle");
-    connectBtn.disabled = false;
-  });
-
-  /* ===== Transcript helper ===== */
-  function addTranscript(text, sender){
-    const div = document.createElement("div");
-    div.className = "bubble " + (sender==="user" ? "user" : "agent");
-    div.textContent = text;
-    transcriptBox.appendChild(div);
-    transcriptBox.scrollTop = transcriptBox.scrollHeight;
-  }
-
-  /* ===== Volume control (affects agent audio element) ===== */
-  volumeControl.addEventListener("input", () => {
-    const vol = volumeControl.value / 100;
-    agentAudio.volume = vol;
-  });
-
-  /* small UX: if widget becomes visible, hint user */
-  setTimeout(()=>{ log("Hinweis: Wenn Verbindung fehlschlägt, öffne Entwicklerkonsole (F12) und poste Fehler hier."); },1200);
-
-  /* final note: Some widget/SDK methods are vendor-specific. If you get a console error,
-     copy/paste it to me and ich helfe konkret. */
 </script>
-```
 
-  </div>
 </body>
 </html>
+
