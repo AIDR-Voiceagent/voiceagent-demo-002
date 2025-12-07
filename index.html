@@ -1,199 +1,128 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI Voice Demo</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Voice Demo</title>
+<style>
+  body {
+    background: #0d0d0d;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
 
-    <style>
-        body {
-            margin: 0;
-            background-color: #000;
-            color: white;
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            height: 100vh;
-            overflow-x: hidden;
-        }
+  /* ÄUSSERES QUADRAT MIT LEUCHTE-RAND */
+  .demo-wrapper {
+    width: 70%; /* mittelbreit, Option B */
+    max-width: 900px;
+    padding: 40px;
+    background: #111;
+    border-radius: 20px;
+    box-shadow: 0 0 25px rgba(255, 255, 255, 0.15);
+  }
 
-        .container {
-            margin-top: 40px;
-            width: 80%;
-            max-width: 900px;
-            text-align: center;
-        }
+  h1 {
+    text-align: center;
+    color: white;
+    margin-top: 0;
+  }
 
-        h1 {
-            margin-bottom: 20px;
-            font-size: 28px;
-            font-weight: 600;
-        }
+  .controls {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 25px;
+  }
 
-        button {
-            background-color: #222;
-            color: white;
-            padding: 10px 28px;
-            border-radius: 8px;
-            border: 1px solid #444;
-            cursor: pointer;
-            margin: 6px;
-            font-size: 16px;
-        }
+  button {
+    padding: 12px 28px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
 
-        button:hover {
-            background-color: #333;
-        }
+  .connect { background: #2e8bff; color: white; }
+  .stop { background: #ff4444; color: white; }
 
-        .mic-bubble {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            border: 2px solid gray;
-            margin: 25px auto 15px auto;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: 600;
-            font-size: 18px;
-            transition: 0.3s;
-            background-color: #111;
-        }
+  .status {
+    text-align: center;
+    color: #cccccc;
+    margin-bottom: 20px;
+  }
 
-        .mic-active {
-            border-color: #00ffaa;
-            box-shadow: 0 0 10px #00ffaa;
-        }
+  /* MIC-ANZEIGE */
+  .mic-bar {
+    height: 14px;
+    width: 60%; /* Balken länger */
+    margin: 0 auto;
+    background: #222;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: inset 0 0 8px rgba(255,255,255,0.2);
+  }
 
-        .volume-bar {
-            width: 60%;
-            height: 8px;
-            background-color: #333;
-            border-radius: 5px;
-            margin: 0px auto 5px auto;
-            position: relative;
-        }
+  .mic-fill {
+    height: 100%;
+    width: 35%;
+    background: #2e8bff;
+  }
 
-        .volume-fill {
-            width: 0%;
-            height: 100%;
-            background-color: #00ffaa;
-            border-radius: 5px;
-        }
+  /* LAUTSTÄRKE-TEXT UNTER DEM BALKEN */
+  .volume-label {
+    text-align: center;
+    color: #bbbbbb;
+    margin-top: 8px;
+    margin-bottom: 20px;
+  }
 
-        .transcript-title {
-            margin-top: 30px;
-            font-size: 18px;
-            font-weight: 600;
-        }
+  /* TRANSCRIPT-BOX */
+  .transcript-box {
+    width: 90%; /* breiter und rechteckig */
+    margin: 0 auto;
+    height: 180px;
+    background: white;
+    border-radius: 10px;
+    padding: 12px;
+    overflow-y: auto;
+  }
 
-        .transcript-box {
-            width: 100%;
-            height: 260px;
-            background-color: #111;
-            border-radius: 12px;
-            margin-top: 10px;
-            overflow-y: auto;
-            padding: 14px;
-            text-align: left;
-            font-size: 15px;
-            border: 1px solid #333;
-        }
-
-        .msg-user {
-            color: #00ffaa;
-            margin-bottom: 10px;
-        }
-        .msg-agent {
-            color: #fff;
-            opacity: 0.9;
-            margin-bottom: 10px;
-        }
-    </style>
+  .transcript-title {
+    color: white;
+    text-align: center;
+    margin-top: 25px;
+    margin-bottom: 10px;
+    font-size: 20px;
+  }
+</style>
 </head>
-
 <body>
-<div class="container">
+  <div class="demo-wrapper">
     <h1>AI Voice Demo</h1>
 
-    <button id="connectBtn">Verbinden</button>
-    <button id="disconnectBtn">Stop</button>
-
-    <div id="errorMsg" style="margin-top: 10px; color: #ff5555;"></div>
-
-    <div class="mic-bubble" id="micBubble">MIC</div>
-
-    <div class="volume-bar">
-        <div class="volume-fill" id="volFill"></div>
+    <div class="controls">
+      <button class="connect">Verbinden</button>
+      <button class="stop">Stop</button>
     </div>
 
-    <div class="transcript-title">Transkript</div>
-    <div class="transcript-box" id="transcriptBox"></div>
-</div>
+    <div class="status">Fehler beim Verbinden</div>
 
-<script src="https://cdn.jsdelivr.net/npm/@11labs/client@latest/dist/browser/elevenlabs.umd.js"></script>
+    <div class="mic-bar">
+      <div class="mic-fill"></div>
+    </div>
 
-<script>
-    let client;
-    let session;
+    <div class="volume-label">Lautstärke</div>
 
-    const connectBtn = document.getElementById("connectBtn");
-    const disconnectBtn = document.getElementById("disconnectBtn");
-    const micBubble = document.getElementById("micBubble");
-    const volFill = document.getElementById("volFill");
-    const transcriptBox = document.getElementById("transcriptBox");
-    const errorMsg = document.getElementById("errorMsg");
-
-    const PUBLIC_KEY = "3857a4fd-9664-470b-b523-759ca2db2753";
-    const ASSISTANT_ID = "9939aaaf-23ff-490a-8daf-665758ff117b";
-
-    function addTranscriptMessage(text, sender) {
-        const div = document.createElement("div");
-        div.className = sender === "user" ? "msg-user" : "msg-agent";
-        div.textContent = text;
-        transcriptBox.appendChild(div);
-        transcriptBox.scrollTop = transcriptBox.scrollHeight;
-    }
-
-    connectBtn.addEventListener("click", async () => {
-        try {
-            errorMsg.textContent = "";
-
-            client = new ElevenLabs.Client({ apiKey: PUBLIC_KEY });
-
-            session = await client.realtime.connect({
-                agentId: ASSISTANT_ID,
-                onOpen: () => console.log("Verbindung geöffnet"),
-                onError: (e) => errorMsg.textContent = "Fehler beim Verbinden",
-                onClose: () => console.log("Verbindung geschlossen"),
-            });
-
-            session.on("message", (msg) => {
-                if (msg.type === "response.input_text.delta") {
-                    addTranscriptMessage(msg.delta, "agent");
-                }
-            });
-
-            session.startSession();
-
-            micBubble.classList.add("mic-active");
-
-        } catch (err) {
-            errorMsg.textContent = "Fehler beim Verbinden";
-        }
-    });
-
-    disconnectBtn.addEventListener("click", () => {
-        try {
-            if (session) session.close();
-        } catch {}
-
-        micBubble.classList.remove("mic-active");
-    });
-
-</script>
-
+    <div class="transcript-title">Transcript</div>
+    <div class="transcript-box">
+      Hier erscheint das Transkript...
+    </div>
+  </div>
 </body>
 </html>
 
