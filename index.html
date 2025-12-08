@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="de">
 <head>
   <meta charset="utf-8" />
@@ -10,9 +9,9 @@
       --bg:#0b0b0b;
       --card:#0f0f10;
       --accent:#00ff9d;
-      --btn-blue:#2e8bff;
-      --btn-red:#ff5757;
       --muted:#bfbfbf;
+      --btn:#222;
+      --btn-border:#2b2b2b;
     }
     html,body{height:100%;margin:0;background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:#fff}
     .page-wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:28px}
@@ -28,64 +27,59 @@
     h1{margin:0 0 18px 0;font-size:28px;text-align:center;color:#fff}
     .controls{display:flex;gap:18px;justify-content:center;margin-bottom:12px}
     .btn{
-      padding:11px 28px;border-radius:10px;border:none;cursor:pointer;font-weight:600;
-      color:#fff;font-size:15px;
-      box-shadow:0 6px 18px rgba(0,0,0,0.5);
+      padding:11px 28px;border-radius:10px;border:1px solid var(--btn-border);cursor:pointer;font-weight:600;
+      color:#fff;font-size:15px;background:var(--btn);
+      box-shadow:0 6px 18px rgba(0,0,0,0.45);
     }
-    .btn.connect{background:var(--btn-blue)}
-    .btn.stop{background:var(--btn-red)}
     .status{ text-align:center;color:var(--muted);margin:6px 0 22px 0;font-weight:600 }
 
-```
-/* MIC bubble */
-.mic-bubble{
-  width:86px;height:86px;border-radius:50%;
-  margin:10px auto 12px auto;
-  display:flex;align-items:center;justify-content:center;
-  background:#0b0b0b;border:2px solid rgba(255,255,255,0.06);
-  font-weight:700;font-size:16px;color:#fff;
-  transition:transform .16s ease, box-shadow .16s ease, border-color .16s ease;
-}
-.mic-bubble.active{ transform:scale(1.08); box-shadow:0 0 18px rgba(0,255,157,0.18); border-color:var(--accent) }
+    /* MIC bubble */
+    .mic-bubble{
+      width:86px;height:86px;border-radius:50%;
+      margin:10px auto 12px auto;
+      display:flex;align-items:center;justify-content:center;
+      background:#0b0b0b;border:2px solid rgba(255,255,255,0.06);
+      font-weight:700;font-size:16px;color:#fff;
+      transition:transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+    }
+    .mic-bubble.active{ transform:scale(1.08); box-shadow:0 0 18px rgba(0,255,157,0.18); border-color:var(--accent) }
 
-/* Lautstärke balken */
-.volume-wrap{ width:220px; margin:8px auto 6px auto; text-align:center }
-.volume-bar{ width:100%; height:8px; background:#171717; border-radius:8px; overflow:hidden; box-shadow:inset 0 0 6px rgba(255,255,255,0.02);}
-.volume-fill{ width:0%; height:100%; background:#ffffff; transition:width .05s linear }
-.volume-label{ color:#fff; margin-top:8px; font-size:14px; opacity:0.9 }
+    /* Lautstärke balken */
+    .volume-wrap{ width:220px; margin:8px auto 6px auto; text-align:center }
+    .volume-bar{ width:100%; height:8px; background:#171717; border-radius:8px; overflow:hidden; box-shadow:inset 0 0 6px rgba(255,255,255,0.02);}
+    .volume-fill{ width:0%; height:100%; background:#ffffff; transition:width .05s linear }
+    .volume-label{ color:#fff; margin-top:8px; font-size:14px; opacity:0.9 }
 
-/* Transkript (schwarz mit weißer Schrift, rechteckig, breiter) */
-.transcript-title{ text-align:center;margin-top:22px;font-size:16px;color:#fff;opacity:0.95 }
-.transcript-box{
-  width:86%;          /* breiter innerhalb der Karte */
-  max-width:720px;
-  height:150px;      /* etwas kürzer, mehr rechteckig */
-  background:#000;   /* schwarz innen */
-  color:#fff;
-  border-radius:10px;
-  margin:10px auto 0 auto;
-  padding:12px 14px;
-  overflow-y:auto;
-  border:1px solid rgba(255,255,255,0.03);
-  box-shadow:0 6px 22px rgba(0,0,0,0.6);
-  font-size:14px;
-  line-height:1.45;
-  text-align:left;
-}
+    /* Transkript (schwarz mit weißer Schrift, rechteckig, breiter) */
+    .transcript-title{ text-align:center;margin-top:22px;font-size:16px;color:#fff;opacity:0.95 }
+    .transcript-box{
+      width:86%;          /* breiter innerhalb der Karte */
+      max-width:720px;
+      height:150px;      /* etwas kürzer, mehr rechteckig */
+      background:#000;   /* schwarz innen */
+      color:#fff;
+      border-radius:10px;
+      margin:10px auto 0 auto;
+      padding:12px 14px;
+      overflow-y:auto;
+      border:1px solid rgba(255,255,255,0.03);
+      box-shadow:0 6px 22px rgba(0,0,0,0.6);
+      font-size:14px;
+      line-height:1.45;
+      text-align:left;
+    }
 
-.msg-user{ color:var(--accent); margin-bottom:8px; font-weight:600 }
-.msg-agent{ color:#fff; margin-bottom:8px; opacity:0.95 }
+    .msg-user{ color:var(--accent); margin-bottom:8px; font-weight:600 }
+    .msg-agent{ color:#fff; margin-bottom:8px; opacity:0.95 }
 
-/* responsive */
-@media (max-width:560px){
-  .card{padding:20px}
-  .mic-bubble{width:66px;height:66px}
-  .volume-wrap{width:170px}
-  .transcript-box{width:94%;height:140px}
-  h1{font-size:20px}
-}
-```
-
+    /* responsive */
+    @media (max-width:560px){
+      .card{padding:20px}
+      .mic-bubble{width:66px;height:66px}
+      .volume-wrap{width:170px}
+      .transcript-box{width:94%;height:140px}
+      h1{font-size:20px}
+    }
   </style>
 </head>
 <body>
@@ -93,42 +87,37 @@
     <div class="card" role="region" aria-label="Demo Card">
       <h1>AI Voice Demo</h1>
 
-```
-  <div class="controls">
-    <button id="connectBtn" class="btn connect">Verbinden</button>
-    <button id="stopBtn" class="btn stop">Stop</button>
-  </div>
+      <div class="controls">
+        <button id="connectBtn" class="btn">Verbinden</button>
+        <button id="stopBtn" class="btn">Stop</button>
+      </div>
 
-  <div class="status" id="statusText">Bereit.</div>
+      <div class="status" id="statusText">Bereit.</div>
 
-  <div class="mic-bubble" id="micBubble">MIC</div>
+      <div class="mic-bubble" id="micBubble">MIC</div>
 
-  <div class="volume-wrap" aria-hidden="true">
-    <div class="volume-bar"><div id="volFill" class="volume-fill"></div></div>
-    <div class="volume-label">Lautstärke</div>
-  </div>
+      <div class="volume-wrap" aria-hidden="true">
+        <div class="volume-bar"><div id="volFill" class="volume-fill"></div></div>
+        <div class="volume-label">Lautstärke</div>
+      </div>
 
-  <div class="transcript-title">Transkript</div>
-  <div id="transcriptBox" class="transcript-box" aria-live="polite"></div>
-</div>
-```
-
+      <div class="transcript-title">Transkript</div>
+      <div id="transcriptBox" class="transcript-box" aria-live="polite"></div>
+    </div>
   </div>
 
   <!--
-    WICHTIG:
-    - Ich habe deine Public Key + Assistant ID eingetragen unten in JS.
-    - Ersetze falls nötig das SDK-Script (hier ist kein Provider-SDK geladen automatisch).
-    - Falls dein Provider ein eigenes Browser-SDK verlangt (z.B. Vapi / WAPI / ElevenLabs),
-      musst du oben <script src="..."> ergänzen und die PSEUDO-SDK-Aufrufe anpassen.
+    VAPI / Ultra-Live Integration
+    -> Public Key / Assistant ID sind bereits eingetragen (dein Wunsch).
+    -> Wir versuchen WebRTC/realtime so zu starten, dass Audio-Input (Mikro) + Audio-Output (Agent) laufen.
+    -> Wenn euer VAPI SDK anders heißt / andere methoden hat, sag Bescheid, ich passe die minimalen Zeilen an.
   -->
-
   <script type="module">
-    // === KEYS (deine Werte) ===
+    // ❗ DEINE KEYS (wie besprochen)
     const PUBLIC_KEY = "3857a4fd-9664-470b-b523-759ca2db2753";
     const ASSISTANT_ID = "9939aaaf-23ff-490a-8daf-665758ff117b";
 
-    // UI Elemente
+    // UI
     const connectBtn = document.getElementById('connectBtn');
     const stopBtn = document.getElementById('stopBtn');
     const statusText = document.getElementById('statusText');
@@ -136,13 +125,12 @@
     const volFill = document.getElementById('volFill');
     const transcriptBox = document.getElementById('transcriptBox');
 
-    // Audio / visualizer vars
-    let session = null;
-    let localStream = null;
-    let raf = null;
+    // audio / visualizer helpers
     let audioContext = null;
     let analyser = null;
     let dataArr = null;
+    let raf = null;
+    let localStream = null;
 
     function addTranscript(text, sender){
       const d = document.createElement('div');
@@ -153,7 +141,7 @@
     }
 
     async function startVisualizer(stream){
-      if(!audioContext) audioContext = new (window.AudioContext||window.webkitAudioContext)();
+      if(!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
       const src = audioContext.createMediaStreamSource(stream);
       analyser = audioContext.createAnalyser();
       analyser.fftSize = 256;
@@ -169,12 +157,8 @@
         }
         const volume = Math.min(1, Math.sqrt(sum/dataArr.length)/50);
         volFill.style.width = Math.round(volume*100) + '%';
-
-        if(volume > 0.22){
-          micBubble.classList.add('active');
-        } else {
-          micBubble.classList.remove('active');
-        }
+        if(volume > 0.22) micBubble.classList.add('active');
+        else micBubble.classList.remove('active');
         raf = requestAnimationFrame(frame);
       }
       frame();
@@ -182,75 +166,100 @@
 
     async function stopVisualizer(){
       if(raf) cancelAnimationFrame(raf);
-      if(analyser){ try{ analyser.disconnect(); }catch{} analyser=null; }
-      if(audioContext){ try{ await audioContext.close(); }catch{} audioContext=null; }
+      if(analyser) { try{ analyser.disconnect(); }catch(e){} analyser=null; }
+      if(audioContext){ try{ await audioContext.close(); }catch(e){} audioContext=null; }
       volFill.style.width = '0%';
       micBubble.classList.remove('active');
     }
 
-    // --------- CONNECT (bei Klick) --------------
-    connectBtn.addEventListener('click', async ()=>{
-      statusText.textContent = 'Verbinde…';
-      connectBtn.disabled = true;
-      try{
-        // Mikrofon holen
-        localStream = await navigator.mediaDevices.getUserMedia({ audio:true });
-        await startVisualizer(localStream);
+    // --- VAPI (ultra-live) usage (best-effort pseudocode using a bundle) ---
+    // We import the VAPI client library from CDN and attempt a realtime session (webrtc or transport 'realtime').
+    // If your actual SDK uses different method names, tell me the exact SDK object and I will replace these lines exactly.
+    import("https://cdn.jsdelivr.net/npm/@vapi-ai/web/dist/index.js").then(({ default: Vapi }) => {
+      // Vapi is available
+      let client = new Vapi(PUBLIC_KEY);
+      let call = null;
 
-        // === HIER MUSS DEIN PROVIDER-SDK AUFRUF HIN ===
-        // Beispiel (PSEUDOCODE) — ersetze durch EUREN SDK-Aufruf:
-        //
-        // session = await YourProviderSDK.createSession({
-        //   publicKey: PUBLIC_KEY,
-        //   assistantId: ASSISTANT_ID,
-        //   localStream // oder "audio" param
-        // });
-        // session.onTranscript((text, sender) => addTranscript(text, sender));
-        // session.on('agent-audio', audioBlob => playAgentAudio(audioBlob));
-        // await session.start();
-        //
-        // Wenn du mir sagst welches SDK genau (z.B. "Vapi" oder "WAPI"), passe ich diesen Abschnitt 1:1 an.
+      connectBtn.addEventListener('click', async () => {
+        try {
+          statusText.textContent = 'Verbinde…';
+          connectBtn.disabled = true;
 
-        // Für Sichtbarkeit: wir simulieren Empfang (Entfernen, wenn echtes SDK aktiv)
-        setTimeout(()=> addTranscript("Hallo! Ich bin verbunden (Demo).", "agent"), 900);
-        addTranscript("Du: Testnachricht (Demo).", "user");
-        statusText.textContent = 'Verbunden';
-      }catch(e){
-        console.error(e);
-        statusText.textContent = 'Fehler beim Verbinden';
+          // 1) Mikrofon holen
+          localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          await startVisualizer(localStream);
+
+          // 2) Start realtime session (Ultra-Live)
+          // NOTE: this is using a common pattern many SDKs expose. If VAPI's exact function differs,
+          // replace the following startRealtime(...) with the real call from your SDK.
+          call = await client.start({
+            assistantId: ASSISTANT_ID,
+            transport: "webrtc",        // request WebRTC realtime
+            realtimeMode: "ultra",     // we ask for ultra-low latency (if supported)
+            audio: {
+              input: localStream,      // pass microphone stream in
+              output: true             // request audio output from assistant
+            }
+          });
+
+          // 3) Hook transcript events
+          call.on("transcript", (evt) => {
+            // evt example: { role: 'user'|'assistant', text: '...' }
+            if(evt && evt.text){
+              addTranscript((evt.role === 'user' ? 'Du: ' : 'Agent: ') + evt.text, evt.role === 'user' ? 'user' : 'agent');
+            }
+          });
+
+          // 4) Hook audio playback events (SDK might provide blob/url or direct audio buffer)
+          // We'll support two common shapes:
+          // - evt.audioUrl -> play via new Audio(url)
+          // - evt.audioBlob -> createObjectURL then play
+          call.on("audio", (a) => {
+            try {
+              if(a && a.url){
+                const aud = new Audio(a.url);
+                aud.play().catch(()=>{/* autoplay may be blocked until user interacts - but connect was triggered by a user click */});
+              } else if(a && a.blob){
+                const u = URL.createObjectURL(a.blob);
+                const aud = new Audio(u);
+                aud.play();
+                // free objectURL after a bit
+                setTimeout(()=>URL.revokeObjectURL(u), 30000);
+              }
+            } catch(e){ console.warn("Audio playback error", e); }
+          });
+
+          // 5) Status
+          statusText.textContent = 'Verbunden';
+          // simulate assistant greeting if SDK doesn't
+          // addTranscript("Agent: Hallo! Ich bin verbunden (Demo).", "agent");
+        } catch(err) {
+          console.error(err);
+          statusText.textContent = 'Fehler beim Verbinden';
+          connectBtn.disabled = false;
+          try { await stopVisualizer(); } catch(e){}
+        }
+      });
+
+      stopBtn.addEventListener('click', async () => {
+        try {
+          if(call && call.stop) await call.stop();
+          if(call && call.close) await call.close();
+        } catch(e){ console.warn(e); }
+        try {
+          if(localStream) { localStream.getTracks().forEach(t=>t.stop()); localStream = null; }
+          await stopVisualizer();
+        } catch(e){/*ignore*/}
+
+        statusText.textContent = 'Getrennt';
         connectBtn.disabled = false;
-        await stopVisualizer();
-      }
-    });
+      });
 
-    // --------- STOP --------------
-    stopBtn.addEventListener('click', async ()=>{
-      try{
-        if(localStream){
-          localStream.getTracks().forEach(t=>t.stop());
-          localStream = null;
-        }
-        if(session){
-          // session.stop() — ersetzt mit dem echten SDK-Aufruf
-          try{ await session.stop?.(); }catch{}
-          session = null;
-        }
-        await stopVisualizer();
-      }catch(e){ console.warn(e) }
-      statusText.textContent = 'Getrennt';
-      connectBtn.disabled = false;
+    }).catch((e)=>{
+      console.error("VAPI module failed to load", e);
+      statusText.textContent = "Fehler: SDK nicht geladen";
     });
-
-    // Optional: helper to play agent audio if SDK returns audio blobs/URL
-    function playAgentAudio(blobOrUrl){
-      let audio = new Audio();
-      if(typeof blobOrUrl === 'string') audio.src = blobOrUrl;
-      else audio.src = URL.createObjectURL(blobOrUrl);
-      audio.autoplay = true;
-      // optional: keep a reference to control volume
-    }
 
   </script>
-
 </body>
 </html>
