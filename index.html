@@ -7,59 +7,64 @@
   <style>
     :root{
       --bg:#0b0b0b;
-      --card:#0f0f10;
+      --card:#171718;
+      --card-inner:#232426;
       --accent:#00ff9d;
-      --muted:#bfbfbf;
-      --btn:#222;
-      --btn-border:#2b2b2b;
+      --muted:#cfcfcf;
+      --btn-bg:#2a2a2a;
+      --glow: rgba(255,255,255,0.08);
     }
     html,body{height:100%;margin:0;background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:#fff}
     .page-wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:28px}
     /* äußere Karte (glow) */
     .card{
-      width:78%; max-width:920px;
-      background:linear-gradient(180deg,#0d0d0d 0,#111111 100%);
+      width:78%; max-width:900px;
+      background:linear-gradient(180deg,var(--card) 0%, #121214 100%);
       border-radius:18px;
-      padding:34px;
-      box-shadow:0 8px 40px rgba(0,0,0,0.7), 0 0 30px rgba(255,255,255,0.06) ;
+      padding:36px;
+      box-shadow:0 8px 40px rgba(0,0,0,0.7), 0 0 28px var(--glow);
       border:1px solid rgba(255,255,255,0.03);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
     }
-    h1{margin:0 0 18px 0;font-size:28px;text-align:center;color:#fff}
-    .controls{display:flex;gap:18px;justify-content:center;margin-bottom:12px}
+    h1{margin:0 0 12px 0;font-size:26px;text-align:center;color:#fff}
+    .controls{display:flex;gap:14px;justify-content:center;margin-bottom:10px}
     .btn{
-      padding:11px 28px;border-radius:10px;border:1px solid var(--btn-border);cursor:pointer;font-weight:600;
-      color:#fff;font-size:15px;background:var(--btn);
-      box-shadow:0 6px 18px rgba(0,0,0,0.45);
+      padding:10px 26px;border-radius:10px;border:none;cursor:pointer;font-weight:700;
+      color:#fff;font-size:15px;background:var(--btn-bg); box-shadow:0 6px 18px rgba(0,0,0,0.5);
     }
-    .status{ text-align:center;color:var(--muted);margin:6px 0 22px 0;font-weight:600 }
+    .btn:disabled{opacity:0.5;cursor:not-allowed}
+    .status{ text-align:center;color:var(--muted);margin:8px 0 18px 0;font-weight:600 }
 
     /* MIC bubble */
     .mic-bubble{
-      width:86px;height:86px;border-radius:50%;
-      margin:10px auto 12px auto;
+      width:92px;height:92px;border-radius:50%;
+      margin:12px auto 10px auto;
       display:flex;align-items:center;justify-content:center;
-      background:#0b0b0b;border:2px solid rgba(255,255,255,0.06);
-      font-weight:700;font-size:16px;color:#fff;
-      transition:transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+      background:linear-gradient(180deg,#0e0f10,#151617);
+      border:2px solid rgba(255,255,255,0.04);
+      font-weight:800;font-size:16px;color:#fff;
+      transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease;
     }
-    .mic-bubble.active{ transform:scale(1.08); box-shadow:0 0 18px rgba(0,255,157,0.18); border-color:var(--accent) }
+    .mic-bubble.active{ transform:scale(1.08); box-shadow:0 0 20px rgba(0,255,157,0.18); border-color:var(--accent) }
 
     /* Lautstärke balken */
-    .volume-wrap{ width:220px; margin:8px auto 6px auto; text-align:center }
-    .volume-bar{ width:100%; height:8px; background:#171717; border-radius:8px; overflow:hidden; box-shadow:inset 0 0 6px rgba(255,255,255,0.02);}
+    .volume-wrap{ width:320px; margin:10px auto 6px auto; text-align:center }
+    .volume-bar{ width:100%; height:8px; background:#171717; border-radius:8px; overflow:hidden; box-shadow:inset 0 0 8px rgba(255,255,255,0.02);}
     .volume-fill{ width:0%; height:100%; background:#ffffff; transition:width .05s linear }
-    .volume-label{ color:#fff; margin-top:8px; font-size:14px; opacity:0.9 }
+    .volume-label{ color:#ddd; margin-top:8px; font-size:14px; opacity:0.95 }
 
-    /* Transkript (schwarz mit weißer Schrift, rechteckig, breiter) */
-    .transcript-title{ text-align:center;margin-top:22px;font-size:16px;color:#fff;opacity:0.95 }
+    /* Transkript (grau, rechteckig, breit) */
+    .transcript-title{ text-align:left;width:100%;margin-top:22px;font-size:14px;color:#e6e6e6;opacity:0.95;margin-bottom:8px }
     .transcript-box{
-      width:86%;          /* breiter innerhalb der Karte */
-      max-width:720px;
-      height:150px;      /* etwas kürzer, mehr rechteckig */
-      background:#000;   /* schwarz innen */
+      width:100%;
+      max-width:760px;
+      height:160px;
+      background:linear-gradient(180deg,#202125,#1a1b1c); /* dunkel-grau innen */
       color:#fff;
       border-radius:10px;
-      margin:10px auto 0 auto;
+      margin:6px auto 0 auto;
       padding:12px 14px;
       overflow-y:auto;
       border:1px solid rgba(255,255,255,0.03);
@@ -69,14 +74,14 @@
       text-align:left;
     }
 
-    .msg-user{ color:var(--accent); margin-bottom:8px; font-weight:600 }
+    .msg-user{ color:var(--accent); margin-bottom:8px; font-weight:700 }
     .msg-agent{ color:#fff; margin-bottom:8px; opacity:0.95 }
 
     /* responsive */
     @media (max-width:560px){
       .card{padding:20px}
-      .mic-bubble{width:66px;height:66px}
-      .volume-wrap{width:170px}
+      .mic-bubble{width:72px;height:72px}
+      .volume-wrap{width:200px}
       .transcript-box{width:94%;height:140px}
       h1{font-size:20px}
     }
@@ -89,7 +94,7 @@
 
       <div class="controls">
         <button id="connectBtn" class="btn">Verbinden</button>
-        <button id="stopBtn" class="btn">Stop</button>
+        <button id="stopBtn" class="btn" disabled>Stop</button>
       </div>
 
       <div class="status" id="statusText">Bereit.</div>
@@ -106,31 +111,32 @@
     </div>
   </div>
 
-  <!--
-    VAPI / Ultra-Live Integration
-    -> Public Key / Assistant ID sind bereits eingetragen (dein Wunsch).
-    -> Wir versuchen WebRTC/realtime so zu starten, dass Audio-Input (Mikro) + Audio-Output (Agent) laufen.
-    -> Wenn euer VAPI SDK anders heißt / andere methoden hat, sag Bescheid, ich passe die minimalen Zeilen an.
-  -->
+  <!-- ====== FINAL: VAPI + Live Audio Integration ======
+       - PUBLIC_KEY und ASSISTANT_ID sind hier eingesetzt
+       - Variante C (ultra-live) angestrebt: weichen Streaming-Aufruf
+       - ⚠️ Je nach Vapi/CDN-Version kann die API-Signatur leicht abweichen.
+  ===================================================== -->
   <script type="module">
-    // ❗ DEINE KEYS (wie besprochen)
+    // === Deine Werte (eingetragen) ===
     const PUBLIC_KEY = "3857a4fd-9664-470b-b523-759ca2db2753";
     const ASSISTANT_ID = "9939aaaf-23ff-490a-8daf-665758ff117b";
 
-    // UI
+    // === Elemente ===
     const connectBtn = document.getElementById('connectBtn');
-    const stopBtn = document.getElementById('stopBtn');
+    const stopBtn    = document.getElementById('stopBtn');
     const statusText = document.getElementById('statusText');
-    const micBubble = document.getElementById('micBubble');
-    const volFill = document.getElementById('volFill');
+    const micBubble  = document.getElementById('micBubble');
+    const volFill    = document.getElementById('volFill');
     const transcriptBox = document.getElementById('transcriptBox');
 
-    // audio / visualizer helpers
+    // === State ===
+    let vapiClient = null;
+    let liveCall = null;
+    let localStream = null;
     let audioContext = null;
     let analyser = null;
     let dataArr = null;
     let raf = null;
-    let localStream = null;
 
     function addTranscript(text, sender){
       const d = document.createElement('div');
@@ -140,8 +146,9 @@
       transcriptBox.scrollTop = transcriptBox.scrollHeight;
     }
 
+    // VU visualizer
     async function startVisualizer(stream){
-      if(!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
       const src = audioContext.createMediaStreamSource(stream);
       analyser = audioContext.createAnalyser();
       analyser.fftSize = 256;
@@ -157,8 +164,7 @@
         }
         const volume = Math.min(1, Math.sqrt(sum/dataArr.length)/50);
         volFill.style.width = Math.round(volume*100) + '%';
-        if(volume > 0.22) micBubble.classList.add('active');
-        else micBubble.classList.remove('active');
+        if(volume > 0.22) micBubble.classList.add('active'); else micBubble.classList.remove('active');
         raf = requestAnimationFrame(frame);
       }
       frame();
@@ -166,98 +172,125 @@
 
     async function stopVisualizer(){
       if(raf) cancelAnimationFrame(raf);
-      if(analyser) { try{ analyser.disconnect(); }catch(e){} analyser=null; }
-      if(audioContext){ try{ await audioContext.close(); }catch(e){} audioContext=null; }
+      if(analyser) analyser.disconnect();
+      if(audioContext) { try { await audioContext.close(); } catch(e){} }
       volFill.style.width = '0%';
       micBubble.classList.remove('active');
+      analyser = null;
+      audioContext = null;
     }
 
-    // --- VAPI (ultra-live) usage (best-effort pseudocode using a bundle) ---
-    // We import the VAPI client library from CDN and attempt a realtime session (webrtc or transport 'realtime').
-    // If your actual SDK uses different method names, tell me the exact SDK object and I will replace these lines exactly.
-    import("https://cdn.jsdelivr.net/npm/@vapi-ai/web/dist/index.js").then(({ default: Vapi }) => {
-      // Vapi is available
-      let client = new Vapi(PUBLIC_KEY);
-      let call = null;
+    // ---- Connect / start call ----
+    connectBtn.addEventListener('click', async ()=>{
+      statusText.textContent = "Verbinde…";
+      connectBtn.disabled = true;
+      stopBtn.disabled = true;
+      try{
+        // 1) Mikrofon holen
+        localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        await startVisualizer(localStream);
 
-      connectBtn.addEventListener('click', async () => {
+        // 2) SDK laden & Client anlegen
+        // Hinweis: Import-Pfad kann je nach Vapi-Version variieren.
+        // Wir benutzen dynamische import, damit Fehler abgefangen werden.
+        let Vapi;
         try {
-          statusText.textContent = 'Verbinde…';
-          connectBtn.disabled = true;
-
-          // 1) Mikrofon holen
-          localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          await startVisualizer(localStream);
-
-          // 2) Start realtime session (Ultra-Live)
-          // NOTE: this is using a common pattern many SDKs expose. If VAPI's exact function differs,
-          // replace the following startRealtime(...) with the real call from your SDK.
-          call = await client.start({
-            assistantId: ASSISTANT_ID,
-            transport: "webrtc",        // request WebRTC realtime
-            realtimeMode: "ultra",     // we ask for ultra-low latency (if supported)
-            audio: {
-              input: localStream,      // pass microphone stream in
-              output: true             // request audio output from assistant
-            }
-          });
-
-          // 3) Hook transcript events
-          call.on("transcript", (evt) => {
-            // evt example: { role: 'user'|'assistant', text: '...' }
-            if(evt && evt.text){
-              addTranscript((evt.role === 'user' ? 'Du: ' : 'Agent: ') + evt.text, evt.role === 'user' ? 'user' : 'agent');
-            }
-          });
-
-          // 4) Hook audio playback events (SDK might provide blob/url or direct audio buffer)
-          // We'll support two common shapes:
-          // - evt.audioUrl -> play via new Audio(url)
-          // - evt.audioBlob -> createObjectURL then play
-          call.on("audio", (a) => {
-            try {
-              if(a && a.url){
-                const aud = new Audio(a.url);
-                aud.play().catch(()=>{/* autoplay may be blocked until user interacts - but connect was triggered by a user click */});
-              } else if(a && a.blob){
-                const u = URL.createObjectURL(a.blob);
-                const aud = new Audio(u);
-                aud.play();
-                // free objectURL after a bit
-                setTimeout(()=>URL.revokeObjectURL(u), 30000);
-              }
-            } catch(e){ console.warn("Audio playback error", e); }
-          });
-
-          // 5) Status
-          statusText.textContent = 'Verbunden';
-          // simulate assistant greeting if SDK doesn't
-          // addTranscript("Agent: Hallo! Ich bin verbunden (Demo).", "agent");
-        } catch(err) {
-          console.error(err);
-          statusText.textContent = 'Fehler beim Verbinden';
+          const mod = await import("https://unpkg.com/@vapi-ai/web/dist/vapi-web.es.js");
+          Vapi = mod?.default || mod?.Vapi || mod;
+        } catch(e){
+          console.error("SDK konnte nicht geladen werden", e);
+          statusText.textContent = "SDK nicht geladen (CDN) — prüfe Konsole";
           connectBtn.disabled = false;
-          try { await stopVisualizer(); } catch(e){}
-        }
-      });
-
-      stopBtn.addEventListener('click', async () => {
-        try {
-          if(call && call.stop) await call.stop();
-          if(call && call.close) await call.close();
-        } catch(e){ console.warn(e); }
-        try {
-          if(localStream) { localStream.getTracks().forEach(t=>t.stop()); localStream = null; }
           await stopVisualizer();
-        } catch(e){/*ignore*/}
+          return;
+        }
 
-        statusText.textContent = 'Getrennt';
+        vapiClient = new Vapi(PUBLIC_KEY);
+
+        // 3) Start Call / Session — generisches Muster (kann je nach SDK leicht abweichen)
+        // Wir fordern eine Stream-basierte Session an, geben das lokale Mikro als input.
+        // Ultra-live: vapi soll Transcripts & Audio in Echtzeit liefern (sofern Vapi dies unterstützt).
+        liveCall = await vapiClient.start({
+          assistantId: ASSISTANT_ID,
+          audio: {
+            input: localStream,
+            output: true,           // wir möchten Audio-Ausgabe (Agent) abspielen
+            // optional: codec/settings können hier angegeben werden, falls nötig
+          },
+          // optional: weitere parameter (latencyMode, partialTranscripts, etc.)
+        });
+
+        // Event-Handler (Transcripts / agent-audio)
+        liveCall.on("transcript", (msg)=>{
+          // msg: { role: 'user'|'assistant', text: '...' } — API kann variieren
+          if(!msg) return;
+          const role = msg.role || msg.sender || (msg.isUser ? 'user' : 'agent');
+          addTranscript(msg.text || msg.message || JSON.stringify(msg), role === 'user' ? 'user' : 'agent');
+        });
+
+        liveCall.on("audio", (chunk)=>{
+          // chunk could be URL or raw data; many SDKs provide a playback URL
+          // Attempt to play if chunk.url is present
+          try {
+            if(chunk?.url){
+              const a = new Audio(chunk.url);
+              a.play().catch(e=>console.warn("Audio playback blocked", e));
+            } else if(chunk?.data){
+              // fallback if raw base64 audio is given
+              const s = new Audio("data:audio/webm;base64," + chunk.data);
+              s.play().catch(()=>{});
+            }
+          } catch(e){
+            console.warn("Audio event handling:", e);
+          }
+        });
+
+        liveCall.on("error", (err)=>{
+          console.error("Call error:", err);
+          statusText.textContent = "Fehler während Anruf";
+        });
+
+        liveCall.on("close", ()=>{
+          statusText.textContent = "Getrennt";
+          connectBtn.disabled = false;
+          stopBtn.disabled = true;
+          // stop visualizer already handled by stopBtn or stop flow
+        });
+
+        // simulated immediate feedback: some SDKs only start delivering after server ack
+        statusText.textContent = "Verbunden";
+        stopBtn.disabled = false;
+
+      } catch(err){
+        console.error(err);
+        statusText.textContent = "Fehler beim Verbinden";
         connectBtn.disabled = false;
-      });
+        await stopVisualizer();
+      }
+    });
 
-    }).catch((e)=>{
-      console.error("VAPI module failed to load", e);
-      statusText.textContent = "Fehler: SDK nicht geladen";
+    // ---- Stop / disconnect ----
+    stopBtn.addEventListener('click', async ()=>{
+      try{
+        if(liveCall && typeof liveCall.stop === "function") await liveCall.stop();
+        if(localStream){
+          localStream.getTracks().forEach(t => t.stop());
+          localStream = null;
+        }
+        await stopVisualizer();
+        statusText.textContent = "Getrennt";
+      }catch(e){
+        console.warn(e);
+        statusText.textContent = "Getrennt";
+      } finally {
+        connectBtn.disabled = false;
+        stopBtn.disabled = true;
+      }
+    });
+
+    // Accessibility / quick sanity
+    window.addEventListener("beforeunload", async ()=>{
+      try{ if(localStream) localStream.getTracks().forEach(t=>t.stop()); }catch(e){}
     });
 
   </script>
