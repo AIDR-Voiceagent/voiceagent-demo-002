@@ -1,97 +1,109 @@
 <!doctype html>
 <html lang="de">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>AI Voice Demo</title>
-
-<style>
-body{margin:0;background:#000;color:#fff;font-family:Arial}
-.card{max-width:900px;margin:40px auto;padding:30px;border-radius:18px;background:#111;text-align:center}
-button{padding:12px 26px;border-radius:10px;background:#222;color:#fff;border:1px solid #333;cursor:pointer}
-#mic{width:90px;height:90px;border-radius:50%;border:2px solid #333;margin:20px auto;display:flex;align-items:center;justify-content:center}
-#mic.active{border-color:#00ff9d;box-shadow:0 0 20px rgba(0,255,157,.4)}
-#log{height:200px;background:#0b0b0b;padding:10px;border-radius:10px;overflow:auto;text-align:left}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AI Voice Demo</title>
+  <style>
+    :root{
+      --bg:#000;--card:#0f0f10;--card-inner:#151515;--muted:#bdbdbd;--accent:#00ff9d;--glow:rgba(255,255,255,0.12);
+    }
+    html,body{height:100%;margin:0;background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:#fff;}
+    .page-wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:28px;}
+    .card{width:78%;max-width:920px;background:linear-gradient(180deg,#121212 0,#0f0f10 100%);border-radius:18px;padding:36px;box-shadow:0 12px 50px rgba(0,0,0,0.7),0 0 40px var(--glow);border:1px solid rgba(255,255,255,0.03);text-align:center;}
+    h1{margin:0 0 18px 0;font-size:28px;}
+    .controls{display:flex;gap:18px;justify-content:center;margin-bottom:12px}
+    .btn{padding:11px 28px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);cursor:pointer;font-weight:600;color:#fff;font-size:15px;background:rgba(255,255,255,0.03);}
+    .status{color:var(--muted);margin:6px 0 18px 0;font-weight:600;min-height:20px;}
+    .mic-bubble{width:86px;height:86px;border-radius:50%;margin:14px auto 8px auto;display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,0.06);}
+    .transcript-box{width:86%;max-width:760px;height:180px;background:#151515;border-radius:10px;margin:12px auto 0;padding:14px 16px;overflow-y:auto;font-size:14px;text-align:left;}
+    .msg-user{color:#00ff9d;margin-bottom:8px;font-weight:600}
+    .msg-agent{margin-bottom:8px;opacity:.95}
+    .hint{margin-top:12px;font-size:13px;color:#ffb3b3}
+  </style>
 </head>
 
 <body>
-<div class="card">
-  <h1>AI Voice Demo</h1>
-  <button id="connect">Verbinden</button>
-  <button id="stop">Stop</button>
-  <div id="status">Bereit</div>
-  <div id="mic">MIC</div>
-  <div id="log"></div>
+<div class="page-wrap">
+  <div class="card">
+    <h1>AI Voice Demo</h1>
+    <div class="controls">
+      <button id="connectBtn" class="btn">Verbinden</button>
+      <button id="stopBtn" class="btn">Stop</button>
+    </div>
+    <div id="statusText" class="status">Bereit.</div>
+    <div class="mic-bubble">MIC</div>
+    <div class="transcript-box" id="transcriptBox"></div>
+    <div id="hint" class="hint"></div>
+  </div>
 </div>
 
-<!-- ✅ OFFIZIELLES VAPI UMD SDK -->
+<!-- VAPI WEB SDK (UMD) -->
 <script src="https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/dist/index.umd.js"></script>
 
 <script>
-const PUBLIC_KEY = "3857a4fd-9664-470b-b523-759ca2db2753";
-const ASSISTANT_ID = "9939aaaf-23ff-490a-8daf-665758ff117b";
+  const PUBLIC_KEY = "3857a4fd-9664-470b-b523-759ca2db2753";
+  const ASSISTANT_ID = "9939aaaf-23ff-490a-8daf-665758ff117b";
 
-const status = document.getElementById("status");
-const mic = document.getElementById("mic");
-const log = document.getElementById("log");
+  const statusText = document.getElementById("statusText");
+  const transcriptBox = document.getElementById("transcriptBox");
+  const hint = document.getElementById("hint");
 
-function add(text){
-  log.innerHTML += text + "<br>";
-  log.scrollTop = log.scrollHeight;
-}
+  let vapi = null;
+  let call = null;
 
-let vapi;
-let call;
-
-/* ✅ SDK sicher holen (egal wie es exportiert wurde) */
-const VapiSDK = window.Vapi?.default || window.Vapi;
-
-document.getElementById("connect").onclick = async () => {
-  try {
-    status.textContent = "Verbinden…";
-
-    if (!VapiSDK) {
-      throw new Error("VAPI SDK nicht geladen");
-    }
-
-    vapi = new VapiSDK(PUBLIC_KEY);
-
-    call = await vapi.start({
-      assistantId: ASSISTANT_ID
-    });
-
-    call.on("speech-start", () => mic.classList.add("active"));
-    call.on("speech-end", () => mic.classList.remove("active"));
-
-    call.on("transcript", e => {
-      if (e.text) {
-        add((e.role === "user" ? "Du: " : "Agent: ") + e.text);
-      }
-    });
-
-    call.on("error", e => {
-      console.error(e);
-      add("❌ Fehler: " + e.message);
-    });
-
-    call.on("close", () => {
-      mic.classList.remove("active");
-      status.textContent = "Getrennt";
-    });
-
-    status.textContent = "Verbunden";
-
-  } catch (err) {
-    console.error(err);
-    status.textContent = "Fehler";
-    add("❌ " + err.message);
+  function addMsg(text, cls){
+    const d = document.createElement("div");
+    d.className = cls;
+    d.textContent = text;
+    transcriptBox.appendChild(d);
+    transcriptBox.scrollTop = transcriptBox.scrollHeight;
   }
-};
 
-document.getElementById("stop").onclick = () => {
-  if (call) call.stop();
-};
+  document.getElementById("connectBtn").onclick = async () => {
+    try {
+      statusText.textContent = "Verbinden…";
+      hint.textContent = "";
+
+      // ✅ RICHTIGER KONSTRUKTOR
+      vapi = new window.Vapi.default(PUBLIC_KEY);
+
+      call = await vapi.start({
+        assistantId: ASSISTANT_ID
+      });
+
+      statusText.textContent = "Verbunden";
+
+      call.on("transcript", e => {
+        if (e?.text) {
+          addMsg(
+            (e.role === "user" ? "Du: " : "Agent: ") + e.text,
+            e.role === "user" ? "msg-user" : "msg-agent"
+          );
+        }
+      });
+
+      call.on("error", e => {
+        console.error(e);
+        statusText.textContent = "Fehler";
+        hint.textContent = "VAPI Fehler – siehe Konsole.";
+      });
+
+      call.on("close", () => {
+        statusText.textContent = "Getrennt";
+      });
+
+    } catch (err) {
+      console.error(err);
+      statusText.textContent = "Verbindung fehlgeschlagen";
+      hint.textContent = "Browser / Mikrofon / SDK Problem.";
+    }
+  };
+
+  document.getElementById("stopBtn").onclick = () => {
+    if (call) call.stop();
+    statusText.textContent = "Getrennt";
+  };
 </script>
 </body>
 </html>
