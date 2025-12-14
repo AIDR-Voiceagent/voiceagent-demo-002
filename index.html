@@ -7,20 +7,12 @@
 
   <style>
     :root{
-      --bg:#000;
-      --card:#0f0f10;
-      --muted:#bdbdbd;
-      --accent:#00ff9d;
+      --bg:#000;--card:#0f0f10;--muted:#bdbdbd;--accent:#00ff9d;
     }
-
     html,body{
-      height:100%;
-      margin:0;
-      background:var(--bg);
-      font-family:Arial,Helvetica,sans-serif;
-      color:#fff;
+      height:100%;margin:0;background:var(--bg);
+      font-family:Arial,Helvetica,sans-serif;color:#fff;
     }
-
     .page-wrap{
       min-height:100%;
       display:flex;
@@ -28,7 +20,6 @@
       justify-content:center;
       padding:28px;
     }
-
     .card{
       width:78%;
       max-width:920px;
@@ -37,59 +28,46 @@
       padding:36px;
       text-align:center;
     }
-
-    h1{margin-bottom:18px}
-
+    h1{margin-bottom:18px;}
     .controls{
       display:flex;
       gap:18px;
       justify-content:center;
       margin-bottom:12px;
     }
-
     .btn{
       padding:11px 28px;
       border-radius:10px;
-      border:1px solid rgba(255,255,255,.1);
+      border:1px solid rgba(255,255,255,0.15);
       background:#111;
       color:#fff;
-      font-weight:600;
       cursor:pointer;
     }
-
     .status{
       color:var(--muted);
-      margin:10px 0 20px;
+      margin:10px 0;
       min-height:20px;
     }
-
-    .mic-bubble{
-      width:86px;
-      height:86px;
-      border-radius:50%;
-      margin:14px auto;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      border:2px solid rgba(255,255,255,.1);
+    .mic{
+      width:86px;height:86px;border-radius:50%;
+      margin:16px auto;
+      display:flex;align-items:center;justify-content:center;
+      border:2px solid rgba(255,255,255,0.2);
     }
-
-    .transcript-box{
+    .transcript{
       width:86%;
       max-width:760px;
       height:180px;
       background:#151515;
       border-radius:10px;
-      margin:12px auto 0;
+      margin:12px auto;
       padding:14px;
       overflow-y:auto;
       text-align:left;
-      font-size:14px;
     }
-
-    .msg-user{color:var(--accent);font-weight:600;margin-bottom:6px}
-    .msg-agent{margin-bottom:6px}
-    .hint{margin-top:12px;color:#ffb3b3;font-size:13px}
+    .user{color:var(--accent);margin-bottom:6px;}
+    .agent{margin-bottom:6px;}
+    .hint{color:#ffb3b3;font-size:13px;}
   </style>
 </head>
 
@@ -103,82 +81,85 @@
       <button id="stopBtn" class="btn">Stop</button>
     </div>
 
-    <div id="statusText" class="status">Bereit.</div>
-    <div class="mic-bubble">MIC</div>
+    <div id="status" class="status">Bereit.</div>
+    <div class="mic">MIC</div>
 
-    <div id="transcriptBox" class="transcript-box"></div>
+    <div id="transcript" class="transcript"></div>
     <div id="hint" class="hint"></div>
   </div>
 </div>
 
-<!-- ✅ STABILE, FUNKTIONIERENDE VERSION -->
-<script src="https://cdn.jsdelivr.net/npm/@vapi-ai/web@0.3.3/dist/index.umd.js"></script>
+<!-- ✅ VAPI SDK (UMD – STABIL) -->
+<script src="https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/dist/index.umd.js"></script>
 
 <script>
   const PUBLIC_KEY = "3857a4fd-9664-470b-b523-759ca2db2753";
   const ASSISTANT_ID = "9939aaaf-23ff-490a-8daf-665758ff117b";
 
-  const statusText = document.getElementById("statusText");
-  const transcriptBox = document.getElementById("transcriptBox");
-  const hint = document.getElementById("hint");
+  const statusEl = document.getElementById("status");
+  const transcriptEl = document.getElementById("transcript");
+  const hintEl = document.getElementById("hint");
 
   let vapi = null;
   let call = null;
 
-  function addMsg(text, cls){
+  function add(text, cls){
     const d = document.createElement("div");
     d.className = cls;
     d.textContent = text;
-    transcriptBox.appendChild(d);
-    transcriptBox.scrollTop = transcriptBox.scrollHeight;
+    transcriptEl.appendChild(d);
+    transcriptEl.scrollTop = transcriptEl.scrollHeight;
   }
 
   document.getElementById("connectBtn").onclick = async () => {
     try {
-      statusText.textContent = "Verbinden…";
-      hint.textContent = "";
+      hintEl.textContent = "";
 
-      if (!window.Vapi) {
+      if (!window.vapiSDK || !window.vapiSDK.Vapi) {
         throw new Error("VAPI SDK nicht geladen");
       }
 
-      vapi = new window.Vapi(PUBLIC_KEY);
+      statusEl.textContent = "Verbinden…";
+
+      vapi = new window.vapiSDK.Vapi({
+        apiKey: PUBLIC_KEY
+      });
 
       call = await vapi.start({
         assistantId: ASSISTANT_ID
       });
 
-      statusText.textContent = "Verbunden";
+      statusEl.textContent = "Verbunden";
 
       call.on("transcript", e => {
         if (e?.text) {
-          addMsg(
+          add(
             (e.role === "user" ? "Du: " : "Agent: ") + e.text,
-            e.role === "user" ? "msg-user" : "msg-agent"
+            e.role === "user" ? "user" : "agent"
           );
         }
       });
 
       call.on("error", err => {
         console.error(err);
-        statusText.textContent = "Fehler";
-        hint.textContent = "VAPI Fehler – siehe Konsole.";
+        statusEl.textContent = "Fehler";
+        hintEl.textContent = "VAPI Fehler – siehe Konsole.";
       });
 
       call.on("close", () => {
-        statusText.textContent = "Getrennt";
+        statusEl.textContent = "Getrennt";
       });
 
     } catch (err) {
       console.error(err);
-      statusText.textContent = "Verbindung fehlgeschlagen";
-      hint.textContent = err.message;
+      statusEl.textContent = "Fehlgeschlagen";
+      hintEl.textContent = err.message;
     }
   };
 
   document.getElementById("stopBtn").onclick = () => {
     if (call) call.stop();
-    statusText.textContent = "Getrennt";
+    statusEl.textContent = "Getrennt";
   };
 </script>
 </body>
