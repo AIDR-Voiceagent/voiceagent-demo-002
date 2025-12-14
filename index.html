@@ -6,21 +6,13 @@
   <title>AI Voice Demo</title>
 
   <style>
-    :root{
-      --bg:#000;
-      --card:#0f0f10;
-      --muted:#bdbdbd;
-      --accent:#00ff9d;
-    }
-
     html,body{
       height:100%;
       margin:0;
-      background:var(--bg);
+      background:#000;
       font-family:Arial,Helvetica,sans-serif;
       color:#fff;
     }
-
     .page-wrap{
       min-height:100%;
       display:flex;
@@ -28,7 +20,6 @@
       justify-content:center;
       padding:28px;
     }
-
     .card{
       width:78%;
       max-width:920px;
@@ -37,59 +28,48 @@
       padding:36px;
       text-align:center;
     }
-
-    h1{margin-bottom:18px}
-
     .controls{
       display:flex;
       gap:18px;
       justify-content:center;
-      margin-bottom:12px
+      margin-bottom:12px;
     }
-
     .btn{
       padding:11px 28px;
       border-radius:10px;
+      border:1px solid rgba(255,255,255,0.1);
+      background:#111;
+      color:#fff;
       cursor:pointer;
       font-weight:600;
-      color:#fff;
-      background:#111;
-      border:1px solid #222;
     }
-
     .status{
-      color:var(--muted);
-      margin-bottom:18px;
+      margin:10px 0;
+      color:#aaa;
       min-height:20px;
     }
-
     .mic{
-      width:86px;
-      height:86px;
+      width:80px;
+      height:80px;
       border-radius:50%;
-      margin:14px auto;
+      border:2px solid #333;
       display:flex;
       align-items:center;
       justify-content:center;
-      border:2px solid #333;
+      margin:12px auto;
     }
-
     .transcript{
-      width:86%;
-      max-width:760px;
-      height:180px;
       background:#151515;
       border-radius:10px;
-      margin:12px auto 0;
       padding:14px;
+      height:180px;
       overflow-y:auto;
       text-align:left;
       font-size:14px;
     }
-
-    .user{color:var(--accent);font-weight:600}
-    .agent{opacity:.95}
-    .hint{margin-top:12px;color:#ffb3b3;font-size:13px}
+    .user{color:#00ff9d;margin-bottom:6px}
+    .agent{margin-bottom:6px}
+    .hint{margin-top:10px;color:#ffb3b3;font-size:13px}
   </style>
 </head>
 
@@ -105,81 +85,79 @@
 
     <div id="status" class="status">Bereit.</div>
     <div class="mic">MIC</div>
-
     <div id="log" class="transcript"></div>
     <div id="hint" class="hint"></div>
   </div>
 </div>
 
-<!-- 🔒 FESTE STABILE VERSION – KEIN latest -->
-<script src="https://cdn.jsdelivr.net/npm/@vapi-ai/web@0.3.3/dist/index.umd.js"></script>
+<!-- 🔴 WICHTIG: NUR DIESE SDK-URL -->
+<script src="https://cdn.jsdelivr.net/npm/@vapi-ai/web/dist/index.umd.js"></script>
 
 <script>
-  const PUBLIC_KEY = "3857a4fd-9664-470b-b523-759ca2db2753";
-  const ASSISTANT_ID = "9939aaaf-23ff-490a-8daf-665758ff117b";
+const PUBLIC_KEY = "3857a4fd-9664-470b-b523-759ca2db2753";
+const ASSISTANT_ID = "9939aaaf-23ff-490a-8daf-665758ff117b";
 
-  const status = document.getElementById("status");
-  const log = document.getElementById("log");
-  const hint = document.getElementById("hint");
+const status = document.getElementById("status");
+const log = document.getElementById("log");
+const hint = document.getElementById("hint");
 
-  let vapi = null;
-  let call = null;
+let vapi = null;
+let call = null;
 
-  function add(text, cls){
-    const d = document.createElement("div");
-    d.className = cls;
-    d.textContent = text;
-    log.appendChild(d);
-    log.scrollTop = log.scrollHeight;
-  }
+function msg(text, cls){
+  const d = document.createElement("div");
+  d.className = cls;
+  d.textContent = text;
+  log.appendChild(d);
+  log.scrollTop = log.scrollHeight;
+}
 
-  document.getElementById("connect").onclick = async () => {
-    try {
-      hint.textContent = "";
-      status.textContent = "Verbinden…";
+document.getElementById("connect").onclick = async () => {
+  try {
+    hint.textContent = "";
+    status.textContent = "Verbinden…";
 
-      if (!window.Vapi) {
-        throw new Error("VAPI SDK nicht geladen");
-      }
-
-      vapi = new window.Vapi(PUBLIC_KEY);
-
-      call = await vapi.start({
-        assistantId: ASSISTANT_ID
-      });
-
-      status.textContent = "Verbunden";
-
-      call.on("transcript", e => {
-        if (e?.text) {
-          add(
-            (e.role === "user" ? "Du: " : "Agent: ") + e.text,
-            e.role === "user" ? "user" : "agent"
-          );
-        }
-      });
-
-      call.on("error", err => {
-        console.error(err);
-        status.textContent = "Fehler";
-        hint.textContent = "VAPI Fehler – siehe Konsole.";
-      });
-
-      call.on("close", () => {
-        status.textContent = "Getrennt";
-      });
-
-    } catch (err) {
-      console.error(err);
-      status.textContent = "Verbindung fehlgeschlagen";
-      hint.textContent = err.message;
+    if (typeof Vapi === "undefined") {
+      throw new Error("VAPI SDK nicht geladen");
     }
-  };
 
-  document.getElementById("stop").onclick = () => {
-    if (call) call.stop();
-    status.textContent = "Getrennt";
-  };
+    vapi = new Vapi(PUBLIC_KEY);
+
+    call = await vapi.start({
+      assistantId: ASSISTANT_ID
+    });
+
+    status.textContent = "Verbunden";
+
+    call.on("transcript", e => {
+      if (e?.text) {
+        msg(
+          (e.role === "user" ? "Du: " : "Agent: ") + e.text,
+          e.role === "user" ? "user" : "agent"
+        );
+      }
+    });
+
+    call.on("error", e => {
+      console.error(e);
+      hint.textContent = "VAPI Fehler – siehe Konsole.";
+    });
+
+    call.on("close", () => {
+      status.textContent = "Getrennt";
+    });
+
+  } catch (err) {
+    console.error(err);
+    status.textContent = "Fehler";
+    hint.textContent = err.message;
+  }
+};
+
+document.getElementById("stop").onclick = () => {
+  if (call) call.stop();
+  status.textContent = "Getrennt";
+};
 </script>
 </body>
 </html>
