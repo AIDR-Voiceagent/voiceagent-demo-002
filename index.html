@@ -7,103 +7,20 @@
 
   <style>
     :root{
-      --bg:#000;
-      --card:#0f0f10;
-      --muted:#bdbdbd;
-      --accent:#00ff9d;
+      --bg:#000;--card:#0f0f10;--muted:#bdbdbd;--accent:#00ff9d;
     }
-
-    html,body{
-      height:100%;
-      margin:0;
-      background:var(--bg);
-      font-family:Arial,Helvetica,sans-serif;
-      color:#fff;
-    }
-
-    .page-wrap{
-      min-height:100%;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:28px;
-    }
-
-    .card{
-      width:78%;
-      max-width:920px;
-      background:linear-gradient(180deg,#121212,#0f0f10);
-      border-radius:18px;
-      padding:36px;
-      text-align:center;
-    }
-
-    h1{margin:0 0 18px;font-size:28px;}
-
-    .controls{
-      display:flex;
-      gap:18px;
-      justify-content:center;
-      margin-bottom:12px;
-    }
-
-    .btn{
-      padding:11px 28px;
-      border-radius:10px;
-      border:1px solid rgba(255,255,255,0.08);
-      cursor:pointer;
-      font-weight:600;
-      color:#fff;
-      background:rgba(255,255,255,0.04);
-    }
-
-    .status{
-      color:var(--muted);
-      margin:6px 0 18px;
-      font-weight:600;
-      min-height:20px;
-    }
-
-    .mic-bubble{
-      width:86px;
-      height:86px;
-      border-radius:50%;
-      margin:14px auto;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      border:2px solid rgba(255,255,255,0.08);
-    }
-
-    .transcript-box{
-      width:86%;
-      max-width:760px;
-      height:180px;
-      background:#151515;
-      border-radius:10px;
-      margin:12px auto 0;
-      padding:14px 16px;
-      overflow-y:auto;
-      font-size:14px;
-      text-align:left;
-    }
-
-    .msg-user{
-      color:var(--accent);
-      margin-bottom:8px;
-      font-weight:600;
-    }
-
-    .msg-agent{
-      margin-bottom:8px;
-      opacity:.95;
-    }
-
-    .hint{
-      margin-top:12px;
-      font-size:13px;
-      color:#ffb3b3;
-    }
+    html,body{height:100%;margin:0;background:var(--bg);font-family:Arial;color:#fff;}
+    .page-wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:28px;}
+    .card{width:78%;max-width:920px;background:#0f0f10;border-radius:18px;padding:36px;text-align:center;}
+    h1{margin:0 0 18px 0;font-size:28px;}
+    .controls{display:flex;gap:18px;justify-content:center;margin-bottom:12px}
+    .btn{padding:11px 28px;border-radius:10px;border:1px solid #222;cursor:pointer;color:#fff;background:#151515;}
+    .status{color:var(--muted);margin:6px 0 18px 0;min-height:20px;}
+    .mic-bubble{width:86px;height:86px;border-radius:50%;margin:14px auto;display:flex;align-items:center;justify-content:center;border:2px solid #222;}
+    .transcript-box{width:86%;max-width:760px;height:180px;background:#151515;border-radius:10px;margin:12px auto 0;padding:14px;overflow-y:auto;text-align:left;}
+    .msg-user{color:var(--accent);margin-bottom:8px;font-weight:600}
+    .msg-agent{margin-bottom:8px;opacity:.95}
+    .hint{margin-top:12px;font-size:13px;color:#ffb3b3}
   </style>
 </head>
 
@@ -119,13 +36,14 @@
 
     <div id="statusText" class="status">Bereit.</div>
     <div class="mic-bubble">MIC</div>
+
     <div id="transcriptBox" class="transcript-box"></div>
     <div id="hint" class="hint"></div>
   </div>
 </div>
 
-<!-- ✅ RICHTIGES VAPI UMD SDK -->
-<script src="https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/dist/index.umd.js"></script>
+<!-- ✅ FESTE, FUNKTIONIERENDE VERSION -->
+<script src="https://cdn.jsdelivr.net/npm/@vapi-ai/web@0.0.14/dist/index.umd.js"></script>
 
 <script>
   const PUBLIC_KEY = "3857a4fd-9664-470b-b523-759ca2db2753";
@@ -148,8 +66,8 @@
 
   document.getElementById("connectBtn").onclick = async () => {
     try {
-      statusText.textContent = "Verbinden…";
       hint.textContent = "";
+      statusText.textContent = "Verbinden…";
 
       if (!window.Vapi) {
         throw new Error("VAPI SDK nicht geladen");
