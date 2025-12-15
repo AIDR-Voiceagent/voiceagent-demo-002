@@ -6,154 +6,188 @@
   <title>AI Voice Demo</title>
 
   <style>
-    html, body {
-      margin: 0;
-      height: 100%;
-      background: #000;
-      font-family: Arial, Helvetica, sans-serif;
-      color: #fff;
+    :root{
+      --bg:#000;
+      --card:#0f0f10;
+      --muted:#bdbdbd;
+      --accent:#00ff9d;
+      --glow:rgba(0,255,157,0.25);
     }
 
-    .page {
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    html,body{
+      height:100%;
+      margin:0;
+      background:var(--bg);
+      font-family:Arial,Helvetica,sans-serif;
+      color:#fff;
     }
 
-    .card {
-      width: 90%;
-      max-width: 600px;
-      background: #111;
-      border-radius: 16px;
-      padding: 32px;
-      text-align: center;
-      box-shadow: 0 0 40px rgba(0,0,0,.8);
+    .page-wrap{
+      min-height:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:28px;
     }
 
-    h1 {
-      margin-top: 0;
+    .card{
+      width:78%;
+      max-width:920px;
+      background:linear-gradient(180deg,#121212,#0f0f10);
+      border-radius:18px;
+      padding:36px;
+      text-align:center;
+      box-shadow:0 0 40px var(--glow);
+      border:1px solid rgba(255,255,255,0.05);
     }
 
-    .controls {
-      display: flex;
-      gap: 16px;
-      justify-content: center;
-      margin-bottom: 16px;
+    h1{margin-bottom:18px;font-size:28px;}
+
+    .controls{
+      display:flex;
+      gap:18px;
+      justify-content:center;
+      margin-bottom:12px;
     }
 
-    button {
-      padding: 10px 24px;
-      font-size: 15px;
-      border-radius: 8px;
-      border: 1px solid #333;
-      background: #1a1a1a;
-      color: #fff;
-      cursor: pointer;
+    .btn{
+      padding:11px 28px;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,0.1);
+      background:rgba(255,255,255,0.05);
+      color:#fff;
+      cursor:pointer;
+      font-weight:600;
     }
 
-    .status {
-      margin: 12px 0;
-      color: #aaa;
-      min-height: 20px;
+    .status{
+      color:var(--muted);
+      margin:10px 0;
+      min-height:20px;
     }
 
-    .log {
-      background: #151515;
-      border-radius: 8px;
-      padding: 12px;
-      height: 160px;
-      overflow-y: auto;
-      font-size: 14px;
-      text-align: left;
+    .mic{
+      width:86px;
+      height:86px;
+      border-radius:50%;
+      margin:20px auto;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border:2px solid rgba(255,255,255,0.15);
+      box-shadow:0 0 20px rgba(0,0,0,0.6);
+      transition:0.2s;
     }
 
-    .user { color: #00ff9d; margin-bottom: 6px; }
-    .agent { color: #fff; margin-bottom: 6px; }
-    .error { color: #ff6b6b; }
+    .mic.active{
+      border-color:var(--accent);
+      box-shadow:0 0 25px var(--accent);
+    }
+
+    .transcript{
+      width:86%;
+      max-width:760px;
+      height:180px;
+      background:#151515;
+      border-radius:10px;
+      margin:16px auto 0;
+      padding:14px;
+      overflow-y:auto;
+      text-align:left;
+      font-size:14px;
+    }
+
+    .user{color:var(--accent);margin-bottom:6px;}
+    .agent{opacity:.9;margin-bottom:6px;}
+
+    .hint{
+      margin-top:12px;
+      color:#ffb3b3;
+      font-size:13px;
+    }
   </style>
 </head>
 
 <body>
-<div class="page">
+<div class="page-wrap">
   <div class="card">
     <h1>AI Voice Demo</h1>
 
     <div class="controls">
-      <button id="connect">Verbinden</button>
-      <button id="stop">Stop</button>
+      <button id="connect" class="btn">Verbinden</button>
+      <button id="stop" class="btn">Stop</button>
     </div>
 
     <div id="status" class="status">Bereit.</div>
-    <div id="log" class="log"></div>
+    <div id="mic" class="mic">MIC</div>
+
+    <div id="log" class="transcript"></div>
+    <div id="hint" class="hint"></div>
   </div>
 </div>
 
-<!-- ✅ STABILE, FUNKTIONIERENDE UMD VERSION -->
+<!-- 🔒 FESTE, STABILE VAPI VERSION (DAS WAR DER SCHLÜSSEL) -->
 <script src="https://unpkg.com/@vapi-ai/web@0.0.12/dist/index.umd.js"></script>
 
 <script>
   const PUBLIC_KEY = "3857a4fd-9664-470b-b523-759ca2db2753";
   const ASSISTANT_ID = "9939aaaf-23ff-490a-8daf-665758ff117b";
 
-  const statusEl = document.getElementById("status");
-  const logEl = document.getElementById("log");
+  const status = document.getElementById("status");
+  const mic = document.getElementById("mic");
+  const log = document.getElementById("log");
+  const hint = document.getElementById("hint");
 
   let vapi = null;
   let call = null;
 
-  function log(text, cls = "") {
-    const div = document.createElement("div");
-    div.className = cls;
-    div.textContent = text;
-    logEl.appendChild(div);
-    logEl.scrollTop = logEl.scrollHeight;
+  function add(text, cls){
+    const d = document.createElement("div");
+    d.className = cls;
+    d.textContent = text;
+    log.appendChild(d);
+    log.scrollTop = log.scrollHeight;
   }
 
   document.getElementById("connect").onclick = async () => {
     try {
-      statusEl.textContent = "Verbinden …";
+      hint.textContent = "";
+      status.textContent = "Verbinden…";
 
-      if (!window.Vapi) {
-        throw new Error("VAPI SDK nicht geladen");
-      }
+      if (!window.Vapi) throw new Error("VAPI SDK nicht geladen");
 
       vapi = new window.Vapi(PUBLIC_KEY);
 
-      call = await vapi.start({
-        assistantId: ASSISTANT_ID
-      });
+      call = await vapi.start({ assistantId: ASSISTANT_ID });
 
-      statusEl.textContent = "Verbunden";
+      mic.classList.add("active");
+      status.textContent = "Verbunden";
 
-      call.on("transcript", (e) => {
+      call.on("transcript", e => {
         if (e?.text) {
-          log(
+          add(
             (e.role === "user" ? "Du: " : "Agent: ") + e.text,
             e.role === "user" ? "user" : "agent"
           );
         }
       });
 
-      call.on("error", (e) => {
-        console.error(e);
-        log("VAPI Fehler", "error");
-      });
-
       call.on("close", () => {
-        statusEl.textContent = "Getrennt";
+        mic.classList.remove("active");
+        status.textContent = "Getrennt";
       });
 
-    } catch (err) {
-      console.error(err);
-      statusEl.textContent = "Fehler";
-      log(err.message, "error");
+    } catch (e) {
+      console.error(e);
+      status.textContent = "Fehler";
+      hint.textContent = e.message;
     }
   };
 
   document.getElementById("stop").onclick = () => {
     if (call) call.stop();
-    statusEl.textContent = "Getrennt";
+    mic.classList.remove("active");
+    status.textContent = "Getrennt";
   };
 </script>
 </body>
