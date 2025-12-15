@@ -9,54 +9,52 @@
     :root{
       --bg:#000;--card:#0f0f10;--muted:#bdbdbd;--accent:#00ff9d;
     }
-    html,body{height:100%;margin:0;background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:#fff;}
+    html,body{height:100%;margin:0;background:var(--bg);font-family:Arial;color:#fff;}
     .page-wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:28px;}
     .card{width:78%;max-width:920px;background:#0f0f10;border-radius:18px;padding:36px;text-align:center;}
-    h1{margin-bottom:18px;}
     .controls{display:flex;gap:18px;justify-content:center;margin-bottom:12px}
-    .btn{padding:11px 28px;border-radius:10px;border:1px solid #333;background:#111;color:#fff;font-weight:600;cursor:pointer;}
-    .status{color:var(--muted);margin:6px 0 18px 0;min-height:20px;}
-    .mic{margin:14px auto;font-size:18px;}
-    .transcript{width:86%;max-width:760px;height:180px;background:#151515;border-radius:10px;margin:12px auto 0;padding:14px;overflow-y:auto;text-align:left;}
+    .btn{padding:11px 28px;border-radius:10px;border:1px solid #333;cursor:pointer;color:#fff;background:#111;}
+    .status{color:var(--muted);margin:10px 0;}
+    .mic{width:80px;height:80px;border-radius:50%;margin:12px auto;border:2px solid #333;display:flex;align-items:center;justify-content:center;}
+    .transcript{width:85%;height:180px;background:#151515;margin:12px auto;padding:12px;border-radius:10px;overflow-y:auto;text-align:left;}
     .user{color:var(--accent);margin-bottom:6px;}
     .agent{margin-bottom:6px;}
-    .hint{margin-top:12px;color:#ffb3b3;font-size:13px;}
+    .hint{color:#ffb3b3;font-size:13px;}
   </style>
 </head>
 
 <body>
 <div class="page-wrap">
   <div class="card">
-    <h1>AI Voice Demo</h1>
+    <h2>AI Voice Demo</h2>
 
     <div class="controls">
-      <button id="connectBtn" class="btn">Verbinden</button>
-      <button id="stopBtn" class="btn">Stop</button>
+      <button id="connect" class="btn">Verbinden</button>
+      <button id="stop" class="btn">Stop</button>
     </div>
 
-    <div id="status" class="status">Bereit.</div>
-    <div class="mic">🎤</div>
-
+    <div id="status" class="status">Bereit</div>
+    <div class="mic">MIC</div>
     <div id="log" class="transcript"></div>
     <div id="hint" class="hint"></div>
   </div>
 </div>
 
-<!-- 🔒 FESTE, STABILE VERSION (KEIN latest!) -->
-<script src="https://cdn.jsdelivr.net/npm/@vapi-ai/web@0.3.7/dist/index.umd.js"></script>
+<!-- 🔒 STABILE FESTE VERSION -->
+<script src="https://cdn.jsdelivr.net/npm/@vapi-ai/web@1.4.0/dist/index.umd.js"></script>
 
 <script>
-  const PUBLIC_KEY   = "3857a4fd-9664-470b-b523-759ca2db2753";
+  const PUBLIC_KEY = "3857a4fd-9664-470b-b523-759ca2db2753";
   const ASSISTANT_ID = "9939aaaf-23ff-490a-8daf-665758ff117b";
 
   const status = document.getElementById("status");
   const log = document.getElementById("log");
   const hint = document.getElementById("hint");
 
-  let vapi = null;
   let call = null;
+  let vapi = null;
 
-  function msg(text, cls){
+  function add(text, cls){
     const d = document.createElement("div");
     d.className = cls;
     d.textContent = text;
@@ -64,49 +62,48 @@
     log.scrollTop = log.scrollHeight;
   }
 
-  document.getElementById("connectBtn").onclick = async () => {
+  document.getElementById("connect").onclick = async () => {
+    hint.textContent = "";
+
+    if (!window.Vapi) {
+      status.textContent = "SDK nicht geladen";
+      hint.textContent = "VAPI SDK fehlt – CDN Problem";
+      return;
+    }
+
     try {
-      hint.textContent = "";
       status.textContent = "Verbinden…";
 
-      if (!window.Vapi) {
-        throw new Error("VAPI SDK nicht geladen");
-      }
-
       vapi = new window.Vapi(PUBLIC_KEY);
-
-      call = await vapi.start({
-        assistantId: ASSISTANT_ID
-      });
+      call = await vapi.start({ assistantId: ASSISTANT_ID });
 
       status.textContent = "Verbunden";
 
       call.on("transcript", e => {
-        if (!e?.text) return;
-        msg(
-          (e.role === "user" ? "Du: " : "Agent: ") + e.text,
-          e.role === "user" ? "user" : "agent"
-        );
+        if(e?.text){
+          add(
+            (e.role === "user" ? "Du: " : "Agent: ") + e.text,
+            e.role === "user" ? "user" : "agent"
+          );
+        }
       });
 
-      call.on("error", err => {
-        console.error(err);
-        hint.textContent = "VAPI Fehler – siehe Konsole.";
+      call.on("error", e => {
+        console.error(e);
+        status.textContent = "Fehler";
       });
 
-      call.on("close", () => {
-        status.textContent = "Getrennt";
-      });
+      call.on("close", () => status.textContent = "Getrennt");
 
     } catch (err) {
       console.error(err);
       status.textContent = "Fehlgeschlagen";
-      hint.textContent = err.message;
+      hint.textContent = "Browser / Mic / SDK";
     }
   };
 
-  document.getElementById("stopBtn").onclick = () => {
-    if (call) call.stop();
+  document.getElementById("stop").onclick = () => {
+    if(call) call.stop();
     status.textContent = "Getrennt";
   };
 </script>
