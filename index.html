@@ -6,42 +6,92 @@
   <title>AI Voice Demo</title>
 
   <style>
-    :root{
-      --bg:#000;--card:#0f0f10;--muted:#bdbdbd;--accent:#00ff9d;
+    html,body{
+      height:100%;margin:0;
+      background:#000;
+      font-family:Arial,Helvetica,sans-serif;
+      color:#fff;
     }
-    html,body{height:100%;margin:0;background:var(--bg);font-family:Arial;color:#fff;}
-    .page-wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:28px;}
-    .card{width:78%;max-width:920px;background:#0f0f10;border-radius:18px;padding:36px;text-align:center;}
-    .controls{display:flex;gap:18px;justify-content:center;margin-bottom:12px}
-    .btn{padding:11px 28px;border-radius:10px;border:1px solid #333;cursor:pointer;color:#fff;background:#111;}
-    .status{color:var(--muted);margin:10px 0;}
-    .mic{width:80px;height:80px;border-radius:50%;margin:12px auto;border:2px solid #333;display:flex;align-items:center;justify-content:center;}
-    .transcript{width:85%;height:180px;background:#151515;margin:12px auto;padding:12px;border-radius:10px;overflow-y:auto;text-align:left;}
-    .user{color:var(--accent);margin-bottom:6px;}
-    .agent{margin-bottom:6px;}
-    .hint{color:#ffb3b3;font-size:13px;}
+    .page-wrap{
+      min-height:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:28px;
+    }
+    .card{
+      width:78%;
+      max-width:920px;
+      background:#0f0f10;
+      border-radius:18px;
+      padding:36px;
+      text-align:center;
+      box-shadow:0 12px 50px rgba(0,0,0,.7);
+    }
+    .controls{
+      display:flex;
+      gap:18px;
+      justify-content:center;
+      margin-bottom:12px;
+    }
+    button{
+      padding:11px 28px;
+      border-radius:10px;
+      background:#111;
+      border:1px solid #222;
+      color:white;
+      cursor:pointer;
+    }
+    .status{
+      margin:12px 0;
+      color:#aaa;
+      min-height:20px;
+    }
+    .mic{
+      width:86px;height:86px;
+      border-radius:50%;
+      border:2px solid #333;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin:14px auto;
+    }
+    .transcript{
+      width:86%;
+      max-width:760px;
+      height:180px;
+      background:#151515;
+      border-radius:10px;
+      margin:12px auto;
+      padding:14px;
+      overflow:auto;
+      text-align:left;
+    }
+    .user{color:#00ff9d;font-weight:600}
+    .agent{opacity:.9}
+    .hint{color:#ff9999;font-size:13px}
   </style>
 </head>
 
 <body>
 <div class="page-wrap">
   <div class="card">
-    <h2>AI Voice Demo</h2>
+    <h1>AI Voice Demo</h1>
 
     <div class="controls">
-      <button id="connect" class="btn">Verbinden</button>
-      <button id="stop" class="btn">Stop</button>
+      <button id="connect">Verbinden</button>
+      <button id="stop">Stop</button>
     </div>
 
-    <div id="status" class="status">Bereit</div>
+    <div id="status" class="status">Bereit.</div>
     <div class="mic">MIC</div>
     <div id="log" class="transcript"></div>
     <div id="hint" class="hint"></div>
   </div>
 </div>
 
-<!-- 🔒 STABILE FESTE VERSION -->
-<script src="https://cdn.jsdelivr.net/npm/@vapi-ai/web@1.4.0/dist/index.umd.js"></script>
+<!-- ✅ STABILES SDK -->
+<script src="https://unpkg.com/@vapi-ai/web@0.0.12/dist/index.umd.js"></script>
 
 <script>
   const PUBLIC_KEY = "3857a4fd-9664-470b-b523-759ca2db2753";
@@ -51,8 +101,7 @@
   const log = document.getElementById("log");
   const hint = document.getElementById("hint");
 
-  let call = null;
-  let vapi = null;
+  let call;
 
   function add(text, cls){
     const d = document.createElement("div");
@@ -63,46 +112,45 @@
   }
 
   document.getElementById("connect").onclick = async () => {
-    hint.textContent = "";
-
-    if (!window.Vapi) {
-      status.textContent = "SDK nicht geladen";
-      hint.textContent = "VAPI SDK fehlt – CDN Problem";
-      return;
-    }
-
     try {
       status.textContent = "Verbinden…";
+      hint.textContent = "";
 
-      vapi = new window.Vapi(PUBLIC_KEY);
-      call = await vapi.start({ assistantId: ASSISTANT_ID });
+      if (!window.Vapi) throw new Error("SDK nicht geladen");
+
+      const vapi = new window.Vapi(PUBLIC_KEY);
+
+      call = await vapi.start({
+        assistantId: ASSISTANT_ID
+      });
 
       status.textContent = "Verbunden";
 
-      call.on("transcript", e => {
+      call.on("transcript", e=>{
         if(e?.text){
-          add(
-            (e.role === "user" ? "Du: " : "Agent: ") + e.text,
-            e.role === "user" ? "user" : "agent"
-          );
+          add((e.role==="user"?"Du: ":"Agent: ")+e.text,
+              e.role==="user"?"user":"agent");
         }
       });
 
-      call.on("error", e => {
+      call.on("error", e=>{
         console.error(e);
         status.textContent = "Fehler";
+        hint.textContent = "VAPI Fehler – siehe Konsole.";
       });
 
-      call.on("close", () => status.textContent = "Getrennt");
+      call.on("close", ()=>{
+        status.textContent = "Getrennt";
+      });
 
-    } catch (err) {
+    } catch(err){
       console.error(err);
-      status.textContent = "Fehlgeschlagen";
-      hint.textContent = "Browser / Mic / SDK";
+      status.textContent = "Fehler";
+      hint.textContent = err.message;
     }
   };
 
-  document.getElementById("stop").onclick = () => {
+  document.getElementById("stop").onclick = ()=>{
     if(call) call.stop();
     status.textContent = "Getrennt";
   };
