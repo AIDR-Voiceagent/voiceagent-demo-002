@@ -11,7 +11,7 @@
       --card:#0f0f10;
       --muted:#bdbdbd;
       --accent:#00ff9d;
-      --glow:rgba(255,255,255,0.15);
+      --glow:rgba(255,255,255,0.22); /* heller grauer Glow */
     }
 
     html,body{
@@ -36,41 +36,38 @@
       background:linear-gradient(180deg,#121212,#0f0f10);
       border-radius:18px;
       padding:36px;
-      box-shadow:
-        0 12px 50px rgba(0,0,0,0.7),
-        0 0 40px var(--glow);
-      border:1px solid rgba(255,255,255,0.04);
       text-align:center;
+      box-shadow:
+        0 0 45px var(--glow),
+        0 12px 50px rgba(0,0,0,0.7);
     }
 
-    h1{margin:0 0 18px;font-size:28px}
+    h1{margin-bottom:18px}
 
     .controls{
       display:flex;
       gap:18px;
       justify-content:center;
-      margin-bottom:12px
+      margin-bottom:12px;
     }
 
     .btn{
       padding:11px 28px;
       border-radius:10px;
-      border:1px solid rgba(255,255,255,0.08);
+      background:rgba(255,255,255,0.05);
+      border:1px solid rgba(255,255,255,0.1);
+      color:#fff;
       cursor:pointer;
       font-weight:600;
-      color:#fff;
-      font-size:15px;
-      background:rgba(255,255,255,0.04);
     }
 
     .status{
       color:var(--muted);
-      margin:6px 0 18px;
-      font-weight:600;
+      margin:10px 0 18px;
       min-height:20px;
     }
 
-    .mic{
+    .mic-bubble{
       width:86px;
       height:86px;
       border-radius:50%;
@@ -78,27 +75,45 @@
       display:flex;
       align-items:center;
       justify-content:center;
-      border:2px solid rgba(255,255,255,0.1);
-      box-shadow:0 0 18px var(--glow);
-      font-weight:700;
+      border:2px solid rgba(255,255,255,0.15);
+      transition:0.2s;
+    }
+
+    .mic-bubble.active{
+      box-shadow:0 0 22px var(--glow);
+    }
+
+    .volume-bar{
+      width:60%;
+      height:8px;
+      background:#222;
+      border-radius:6px;
+      margin:10px auto;
+      overflow:hidden;
+    }
+
+    .volume-fill{
+      height:100%;
+      width:0%;
+      background:#fff;
+      transition:width .05s linear;
     }
 
     .transcript-box{
       width:86%;
-      max-width:760px;
       height:180px;
+      margin:18px auto 0;
       background:#151515;
       border-radius:10px;
-      margin:12px auto 0;
-      padding:14px 16px;
+      padding:14px;
       overflow-y:auto;
-      font-size:14px;
       text-align:left;
     }
 
-    .msg-user{color:var(--accent);margin-bottom:8px;font-weight:600}
-    .msg-agent{margin-bottom:8px;opacity:.95}
-    .hint{margin-top:12px;font-size:13px;color:#ffb3b3}
+    .msg-user{color:var(--accent);margin-bottom:6px}
+    .msg-agent{margin-bottom:6px}
+
+    .hint{margin-top:12px;color:#ffb3b3}
   </style>
 </head>
 
@@ -113,14 +128,20 @@
     </div>
 
     <div id="statusText" class="status">Bereit.</div>
-    <div class="mic">MIC</div>
+
+    <div id="micBubble" class="mic-bubble">MIC</div>
+
+    <div class="volume-bar">
+      <div id="volFill" class="volume-fill"></div>
+    </div>
+
     <div id="transcriptBox" class="transcript-box"></div>
     <div id="hint" class="hint"></div>
   </div>
 </div>
 
-<!-- ✅ EINZIG RICHTIGES VAPI SDK (UMD) -->
-<script src="https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/dist/index.umd.js"></script>
+<!-- ✅ EINZIG RICHTIGES VAPI SDK -->
+<script src="https://unpkg.com/@vapi-ai/web@0.0.12/dist/index.umd.js"></script>
 
 <script>
   const PUBLIC_KEY = "3857a4fd-9664-470b-b523-759ca2db2753";
@@ -128,65 +149,78 @@
 
   const statusText = document.getElementById("statusText");
   const transcriptBox = document.getElementById("transcriptBox");
+  const micBubble = document.getElementById("micBubble");
+  const volFill = document.getElementById("volFill");
   const hint = document.getElementById("hint");
 
-  let vapi = null;
-  let call = null;
+  let vapi, call, audioCtx, analyser;
 
   function addMsg(text, cls){
-    const d = document.createElement("div");
-    d.className = cls;
-    d.textContent = text;
+    const d=document.createElement("div");
+    d.className=cls;
+    d.textContent=text;
     transcriptBox.appendChild(d);
-    transcriptBox.scrollTop = transcriptBox.scrollHeight;
+    transcriptBox.scrollTop=transcriptBox.scrollHeight;
   }
 
-  document.getElementById("connectBtn").onclick = async () => {
-    try {
-      statusText.textContent = "Verbinden…";
-      hint.textContent = "";
+  async function visualize(stream){
+    audioCtx=new AudioContext();
+    const src=audioCtx.createMediaStreamSource(stream);
+    analyser=audioCtx.createAnalyser();
+    analyser.fftSize=256;
+    src.connect(analyser);
 
-      if (!window.Vapi) {
-        throw new Error("VAPI SDK nicht geladen");
-      }
+    const data=new Uint8Array(analyser.frequencyBinCount);
+    function loop(){
+      analyser.getByteTimeDomainData(data);
+      let sum=0;
+      data.forEach(v=>sum+=(v-128)**2);
+      const vol=Math.min(1,Math.sqrt(sum/data.length)/50);
+      volFill.style.width=(vol*100)+"%";
+      micBubble.classList.toggle("active",vol>0.2);
+      requestAnimationFrame(loop);
+    }
+    loop();
+  }
+
+  document.getElementById("connectBtn").onclick = async ()=>{
+    try{
+      statusText.textContent="Verbinden…";
+      hint.textContent="";
+
+      const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+      visualize(stream);
 
       vapi = new window.Vapi(PUBLIC_KEY);
 
-      call = await vapi.start({
-        assistantId: ASSISTANT_ID
-      });
+      call = await vapi.start({assistantId:ASSISTANT_ID});
 
-      statusText.textContent = "Verbunden";
+      statusText.textContent="Verbunden";
 
-      call.on("transcript", e => {
-        if (e?.text) {
+      call.on("transcript",e=>{
+        if(e?.text){
           addMsg(
-            (e.role === "user" ? "Du: " : "Agent: ") + e.text,
-            e.role === "user" ? "msg-user" : "msg-agent"
+            (e.role==="user"?"Du: ":"Agent: ")+e.text,
+            e.role==="user"?"msg-user":"msg-agent"
           );
         }
       });
 
-      call.on("error", e => {
+      call.on("close",()=>statusText.textContent="Getrennt");
+      call.on("error",e=>{
         console.error(e);
-        statusText.textContent = "Fehler";
-        hint.textContent = "VAPI Backend-Fehler – siehe Konsole.";
+        hint.textContent="VAPI Fehler – siehe Konsole";
       });
 
-      call.on("close", () => {
-        statusText.textContent = "Getrennt";
-      });
-
-    } catch (err) {
+    }catch(err){
       console.error(err);
-      statusText.textContent = "Verbindung fehlgeschlagen";
-      hint.textContent = err.message;
+      hint.textContent="Browser / Mikrofon Problem";
     }
   };
 
-  document.getElementById("stopBtn").onclick = () => {
-    if (call) call.stop();
-    statusText.textContent = "Getrennt";
+  document.getElementById("stopBtn").onclick=()=>{
+    if(call) call.stop();
+    statusText.textContent="Getrennt";
   };
 </script>
 </body>
