@@ -11,7 +11,7 @@
       --card:#0f0f10;
       --muted:#bdbdbd;
       --accent:#00ff9d;
-      --glow:rgba(255,255,255,0.18);
+      --glow:rgba(255,255,255,0.25);
     }
 
     html,body{
@@ -36,14 +36,12 @@
       background:linear-gradient(180deg,#121212 0,#0f0f10 100%);
       border-radius:18px;
       padding:36px;
-      box-shadow:
-        0 12px 50px rgba(0,0,0,.7),
-        0 0 55px var(--glow);
-      border:1px solid rgba(255,255,255,.04);
+      box-shadow:0 0 45px var(--glow);
+      border:1px solid rgba(255,255,255,0.04);
       text-align:center;
     }
 
-    h1{margin:0 0 18px;font-size:28px}
+    h1{margin-bottom:18px;font-size:28px;}
 
     .controls{
       display:flex;
@@ -55,17 +53,17 @@
     .btn{
       padding:11px 28px;
       border-radius:10px;
-      border:1px solid rgba(255,255,255,.08);
-      background:rgba(255,255,255,.04);
-      color:#fff;
+      border:1px solid rgba(255,255,255,0.08);
       cursor:pointer;
       font-weight:600;
+      color:#fff;
+      font-size:15px;
+      background:rgba(255,255,255,0.04);
     }
 
     .status{
       color:var(--muted);
       margin:6px 0 18px;
-      min-height:20px;
       font-weight:600;
     }
 
@@ -77,25 +75,20 @@
       display:flex;
       align-items:center;
       justify-content:center;
-      border:2px solid rgba(255,255,255,.15);
-      box-shadow:0 0 28px rgba(255,255,255,.25);
-      transition:.15s;
+      border:2px solid rgba(255,255,255,0.12);
+      box-shadow:0 0 25px rgba(255,255,255,0.15);
     }
 
     .mic-bubble.active{
-      box-shadow:0 0 42px rgba(255,255,255,.45);
-    }
-
-    .volume-wrap{
-      width:60%;
-      margin:8px auto;
+      box-shadow:0 0 35px rgba(255,255,255,0.45);
     }
 
     .volume-bar{
-      width:100%;
+      width:60%;
       height:8px;
-      background:#1a1a1a;
-      border-radius:8px;
+      margin:10px auto;
+      background:#222;
+      border-radius:6px;
       overflow:hidden;
     }
 
@@ -112,11 +105,11 @@
       height:180px;
       background:#151515;
       border-radius:10px;
-      margin:18px auto 0;
+      margin:14px auto 0;
       padding:14px 16px;
       overflow-y:auto;
-      text-align:left;
       font-size:14px;
+      text-align:left;
     }
 
     .msg-user{color:var(--accent);margin-bottom:8px;font-weight:600}
@@ -138,17 +131,15 @@
 
     <div id="micBubble" class="mic-bubble">MIC</div>
 
-    <div class="volume-wrap">
-      <div class="volume-bar">
-        <div id="volFill" class="volume-fill"></div>
-      </div>
+    <div class="volume-bar">
+      <div id="volFill" class="volume-fill"></div>
     </div>
 
     <div id="transcriptBox" class="transcript-box"></div>
   </div>
 </div>
 
-<!-- STABILES VAPI SDK (UMD) -->
+<!-- 🔒 FESTE, STABILE VAPI VERSION (KEIN latest!) -->
 <script src="https://unpkg.com/@vapi-ai/web@0.0.12/dist/index.umd.js"></script>
 
 <script>
@@ -160,52 +151,55 @@
   const micBubble = document.getElementById("micBubble");
   const volFill = document.getElementById("volFill");
 
-  let vapi, call, audioCtx, analyser, raf;
+  let vapi = null;
+  let call = null;
+  let audioCtx, analyser, raf;
 
   function addMsg(text, cls){
-    const d=document.createElement("div");
-    d.className=cls;
-    d.textContent=text;
+    const d = document.createElement("div");
+    d.className = cls;
+    d.textContent = text;
     transcriptBox.appendChild(d);
-    transcriptBox.scrollTop=transcriptBox.scrollHeight;
+    transcriptBox.scrollTop = transcriptBox.scrollHeight;
   }
 
-  function getVapiConstructor(){
-    if (window.Vapi?.default) return window.Vapi.default;
+  function getVapi(){
     if (window.Vapi) return window.Vapi;
+    if (window.Vapi?.default) return window.Vapi.default;
     throw new Error("VAPI SDK nicht geladen");
   }
 
   async function startVisualizer(stream){
-    audioCtx=new AudioContext();
-    const src=audioCtx.createMediaStreamSource(stream);
-    analyser=audioCtx.createAnalyser();
-    analyser.fftSize=256;
-    const data=new Uint8Array(analyser.frequencyBinCount);
+    audioCtx = new AudioContext();
+    const src = audioCtx.createMediaStreamSource(stream);
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 256;
+    const data = new Uint8Array(analyser.frequencyBinCount);
     src.connect(analyser);
 
-    const loop=()=>{
+    const loop = ()=>{
       analyser.getByteTimeDomainData(data);
       let sum=0;
       for(let i=0;i<data.length;i++){
         const v=data[i]-128;
         sum+=v*v;
       }
-      const vol=Math.min(1,Math.sqrt(sum/data.length)/45);
+      const vol=Math.min(1,Math.sqrt(sum/data.length)/50);
       volFill.style.width=(vol*100)+"%";
-      micBubble.classList.toggle("active",vol>0.2);
+      micBubble.classList.toggle("active",vol>0.15);
       raf=requestAnimationFrame(loop);
     };
     loop();
   }
 
-  document.getElementById("connectBtn").onclick=async()=>{
+  document.getElementById("connectBtn").onclick = async ()=>{
     try{
       statusText.textContent="Verbinden…";
-      const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+
+      const stream = await navigator.mediaDevices.getUserMedia({audio:true});
       await startVisualizer(stream);
 
-      const VapiCtor = getVapiConstructor();
+      const VapiCtor = getVapi();
       vapi = new VapiCtor(PUBLIC_KEY);
 
       call = await vapi.start({
@@ -215,7 +209,7 @@
 
       statusText.textContent="Verbunden";
 
-      call.on("transcript",e=>{
+      call.on("transcript", e=>{
         if(e?.text){
           addMsg(
             (e.role==="user"?"Du: ":"Agent: ")+e.text,
@@ -224,7 +218,8 @@
         }
       });
 
-      call.on("close",()=>statusText.textContent="Getrennt");
+      call.on("close", ()=>statusText.textContent="Getrennt");
+      call.on("error", e=>console.error(e));
 
     }catch(err){
       console.error(err);
@@ -232,8 +227,12 @@
     }
   };
 
-  document.getElementById("stopBtn").onclick=()=>{
+  document.getElementById("stopBtn").onclick = ()=>{
     if(call) call.stop();
+    if(audioCtx) audioCtx.close();
+    cancelAnimationFrame(raf);
+    volFill.style.width="0%";
+    micBubble.classList.remove("active");
     statusText.textContent="Getrennt";
   };
 </script>
