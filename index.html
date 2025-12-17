@@ -13,7 +13,6 @@
       --accent:#00ff9d;
       --glow:rgba(255,255,255,0.25);
     }
-
     html,body{
       height:100%;
       margin:0;
@@ -21,7 +20,6 @@
       font-family:Arial,Helvetica,sans-serif;
       color:#fff;
     }
-
     .page-wrap{
       min-height:100%;
       display:flex;
@@ -29,7 +27,6 @@
       justify-content:center;
       padding:28px;
     }
-
     .card{
       width:78%;
       max-width:920px;
@@ -37,88 +34,47 @@
       border-radius:18px;
       padding:36px;
       box-shadow:0 0 45px var(--glow);
-      border:1px solid rgba(255,255,255,0.04);
       text-align:center;
     }
-
     h1{margin-bottom:18px;font-size:28px;}
-
     .controls{
       display:flex;
       gap:18px;
       justify-content:center;
       margin-bottom:12px;
     }
-
     .btn{
       padding:11px 28px;
       border-radius:10px;
-      border:1px solid rgba(255,255,255,0.08);
       cursor:pointer;
       font-weight:600;
       color:#fff;
       font-size:15px;
-      background:rgba(255,255,255,0.04);
+      background:#1b1b1b;
+      border:1px solid #333;
     }
-
-    .btn:disabled{
-      opacity:.4;
-      cursor:not-allowed;
-    }
-
-    .status{
-      color:var(--muted);
-      margin:6px 0 18px;
-      font-weight:600;
-    }
-
+    .btn:disabled{opacity:.4;cursor:not-allowed;}
+    .status{color:var(--muted);margin:6px 0 18px;font-weight:600;}
     .mic-bubble{
-      width:86px;
-      height:86px;
-      border-radius:50%;
-      margin:14px auto;
-      display:flex;
-      align-items:center;
-      justify-content:center;
+      width:86px;height:86px;border-radius:50%;
+      margin:14px auto;display:flex;
+      align-items:center;justify-content:center;
       border:2px solid rgba(255,255,255,0.12);
-      box-shadow:0 0 25px rgba(255,255,255,0.15);
     }
-
-    .mic-bubble.active{
-      box-shadow:0 0 35px rgba(255,255,255,0.45);
-    }
-
+    .mic-bubble.active{box-shadow:0 0 35px rgba(255,255,255,0.45);}
     .volume-bar{
-      width:60%;
-      height:8px;
-      margin:10px auto;
-      background:#222;
-      border-radius:6px;
-      overflow:hidden;
+      width:60%;height:8px;margin:10px auto;
+      background:#222;border-radius:6px;overflow:hidden;
     }
-
-    .volume-fill{
-      height:100%;
-      width:0%;
-      background:#fff;
-      transition:width .05s linear;
-    }
-
+    .volume-fill{height:100%;width:0%;background:#fff;}
     .transcript-box{
-      width:86%;
-      max-width:760px;
-      height:180px;
-      background:#151515;
-      border-radius:10px;
-      margin:14px auto 0;
-      padding:14px 16px;
-      overflow-y:auto;
-      font-size:14px;
+      width:86%;height:180px;background:#151515;
+      border-radius:10px;margin:14px auto 0;
+      padding:14px;overflow-y:auto;font-size:14px;
       text-align:left;
     }
-
-    .msg-user{color:var(--accent);margin-bottom:8px;font-weight:600}
-    .msg-agent{margin-bottom:8px;opacity:.95}
+    .msg-user{color:var(--accent);margin-bottom:6px;font-weight:600}
+    .msg-agent{margin-bottom:6px;opacity:.95}
   </style>
 </head>
 
@@ -133,122 +89,103 @@
     </div>
 
     <div id="statusText" class="status">SDK wird geladen…</div>
-
     <div id="micBubble" class="mic-bubble">MIC</div>
 
-    <div class="volume-bar">
-      <div id="volFill" class="volume-fill"></div>
-    </div>
-
+    <div class="volume-bar"><div id="volFill" class="volume-fill"></div></div>
     <div id="transcriptBox" class="transcript-box"></div>
   </div>
 </div>
 
-<!-- ✅ VAPI SDK – mit garantiertem Load-Flag -->
-<script>
-  window.__VAPI_READY__ = false;
-</script>
-
-<script
-  src="https://unpkg.com/@vapi-ai/web@0.0.12/dist/index.umd.js"
-  onload="window.__VAPI_READY__ = true"
-></script>
+<!-- VAPI SDK -->
+<script src="https://unpkg.com/@vapi-ai/web@0.0.12/dist/index.umd.js"></script>
 
 <script>
-  const PUBLIC_KEY = "3857a4fd-9664-470b-b523-759ca2db2753";
-  const ASSISTANT_ID = "9939aaaf-23ff-490a-8daf-665758ff117b";
+const PUBLIC_KEY = "3857a4fd-9664-470b-b523-759ca2db2753";
+const ASSISTANT_ID = "9939aaaf-23ff-490a-8daf-665758ff117b";
 
-  const connectBtn = document.getElementById("connectBtn");
-  const statusText = document.getElementById("statusText");
-  const transcriptBox = document.getElementById("transcriptBox");
-  const micBubble = document.getElementById("micBubble");
-  const volFill = document.getElementById("volFill");
+const connectBtn = document.getElementById("connectBtn");
+const statusText = document.getElementById("statusText");
+const transcriptBox = document.getElementById("transcriptBox");
+const micBubble = document.getElementById("micBubble");
+const volFill = document.getElementById("volFill");
 
-  let vapi = null;
-  let call = null;
-  let audioCtx, analyser, raf;
+let vapi, call, audioCtx, analyser, raf;
 
-  const sdkCheck = setInterval(() => {
-    if (window.__VAPI_READY__ && window.Vapi?.default) {
-      clearInterval(sdkCheck);
-      connectBtn.disabled = false;
-      statusText.textContent = "Bereit.";
-    }
-  }, 100);
-
-  function addMsg(text, cls){
-    const d = document.createElement("div");
-    d.className = cls;
-    d.textContent = text;
-    transcriptBox.appendChild(d);
-    transcriptBox.scrollTop = transcriptBox.scrollHeight;
+// 🔐 SDK WAIT FIX (mit Timeout!)
+let waited = 0;
+const sdkTimer = setInterval(() => {
+  waited += 100;
+  if (window.Vapi && window.Vapi.default) {
+    clearInterval(sdkTimer);
+    connectBtn.disabled = false;
+    statusText.textContent = "Bereit.";
   }
+  if (waited > 5000) {
+    clearInterval(sdkTimer);
+    statusText.textContent = "SDK konnte nicht geladen werden";
+  }
+}, 100);
 
-  async function startVisualizer(stream){
-    audioCtx = new AudioContext();
-    const src = audioCtx.createMediaStreamSource(stream);
-    analyser = audioCtx.createAnalyser();
-    analyser.fftSize = 256;
-    const data = new Uint8Array(analyser.frequencyBinCount);
-    src.connect(analyser);
+function addMsg(t,c){
+  const d=document.createElement("div");
+  d.className=c; d.textContent=t;
+  transcriptBox.appendChild(d);
+  transcriptBox.scrollTop=transcriptBox.scrollHeight;
+}
 
-    const loop = ()=>{
-      analyser.getByteTimeDomainData(data);
-      let sum=0;
-      for(let i=0;i<data.length;i++){
-        const v=data[i]-128;
-        sum+=v*v;
+async function startVisualizer(stream){
+  audioCtx=new AudioContext();
+  const src=audioCtx.createMediaStreamSource(stream);
+  analyser=audioCtx.createAnalyser();
+  analyser.fftSize=256;
+  const data=new Uint8Array(analyser.frequencyBinCount);
+  src.connect(analyser);
+  const loop=()=>{
+    analyser.getByteTimeDomainData(data);
+    let s=0;
+    for(let i=0;i<data.length;i++){const v=data[i]-128;s+=v*v;}
+    const vol=Math.min(1,Math.sqrt(s/data.length)/50);
+    volFill.style.width=(vol*100)+"%";
+    micBubble.classList.toggle("active",vol>0.15);
+    raf=requestAnimationFrame(loop);
+  }; loop();
+}
+
+connectBtn.onclick = async ()=>{
+  try{
+    statusText.textContent="Verbinden…";
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    await startVisualizer(stream);
+
+    vapi = new window.Vapi.default(PUBLIC_KEY);
+    call = await vapi.start({
+      assistantId: ASSISTANT_ID,
+      audio:{ input:stream, output:true }
+    });
+
+    statusText.textContent="Verbunden";
+
+    call.on("transcript", e=>{
+      if(e?.text){
+        addMsg((e.role==="user"?"Du: ":"Agent: ")+e.text,
+          e.role==="user"?"msg-user":"msg-agent");
       }
-      const vol=Math.min(1,Math.sqrt(sum/data.length)/50);
-      volFill.style.width=(vol*100)+"%";
-      micBubble.classList.toggle("active",vol>0.15);
-      raf=requestAnimationFrame(loop);
-    };
-    loop();
+    });
+
+    call.on("close", ()=>statusText.textContent="Getrennt");
+  }catch(e){
+    console.error(e);
+    statusText.textContent="Verbindung fehlgeschlagen";
   }
+};
 
-  connectBtn.onclick = async ()=>{
-    try{
-      statusText.textContent="Verbinden…";
-
-      const stream = await navigator.mediaDevices.getUserMedia({audio:true});
-      await startVisualizer(stream);
-
-      vapi = new window.Vapi.default(PUBLIC_KEY);
-
-      call = await vapi.start({
-        assistantId: ASSISTANT_ID,
-        audio:{ input:stream, output:true }
-      });
-
-      statusText.textContent="Verbunden";
-
-      call.on("transcript", e=>{
-        if(e?.text){
-          addMsg(
-            (e.role==="user"?"Du: ":"Agent: ")+e.text,
-            e.role==="user"?"msg-user":"msg-agent"
-          );
-        }
-      });
-
-      call.on("close", ()=>statusText.textContent="Getrennt");
-      call.on("error", e=>console.error(e));
-
-    }catch(err){
-      console.error(err);
-      statusText.textContent="Browser / Mikrofon / SDK Problem";
-    }
-  };
-
-  document.getElementById("stopBtn").onclick = ()=>{
-    if(call) call.stop();
-    if(audioCtx) audioCtx.close();
-    cancelAnimationFrame(raf);
-    volFill.style.width="0%";
-    micBubble.classList.remove("active");
-    statusText.textContent="Getrennt";
-  };
+document.getElementById("stopBtn").onclick=()=>{
+  call?.stop(); audioCtx?.close();
+  cancelAnimationFrame(raf);
+  volFill.style.width="0%";
+  micBubble.classList.remove("active");
+  statusText.textContent="Getrennt";
+};
 </script>
 </body>
 </html>
