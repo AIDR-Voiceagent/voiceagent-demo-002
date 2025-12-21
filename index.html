@@ -96,99 +96,84 @@
   </div>
 </div>
 
-<!-- ✅ VAPI SDK – STABILES CDN -->
-<script
-  src="https://cdn.jsdelivr.net/npm/@vapi-ai/web@0.0.12/dist/index.umd.js"
-  crossorigin="anonymous">
-</script>
+<!-- ✅ VAPI SDK – RICHTIG -->
+<script type="module">
+  import Vapi from "https://cdn.jsdelivr.net/npm/@vapi-ai/web/dist/index.js";
 
-<script>
-const PUBLIC_KEY = "3857a4fd-9664-470b-b523-759ca2db2753";
-const ASSISTANT_ID = "9939aaaf-23ff-490a-8daf-665758ff117b";
+  const PUBLIC_KEY = "3857a4fd-9664-470b-b523-759ca2db2753";
+  const ASSISTANT_ID = "9939aaaf-23ff-490a-8daf-665758ff117b";
 
-const connectBtn = document.getElementById("connectBtn");
-const statusText = document.getElementById("statusText");
-const transcriptBox = document.getElementById("transcriptBox");
-const micBubble = document.getElementById("micBubble");
-const volFill = document.getElementById("volFill");
+  const connectBtn = document.getElementById("connectBtn");
+  const statusText = document.getElementById("statusText");
+  const transcriptBox = document.getElementById("transcriptBox");
+  const micBubble = document.getElementById("micBubble");
+  const volFill = document.getElementById("volFill");
 
-let vapi, call, audioCtx, analyser, raf;
+  let vapi, call, audioCtx, analyser, raf;
 
-// SDK Wait
-let waited = 0;
-const sdkTimer = setInterval(() => {
-  waited += 100;
-  if (window.Vapi && window.Vapi.default) {
-    clearInterval(sdkTimer);
-    connectBtn.disabled = false;
-    statusText.textContent = "Bereit.";
+  connectBtn.disabled = false;
+  statusText.textContent = "Bereit.";
+
+  function addMsg(t,c){
+    const d=document.createElement("div");
+    d.className=c; d.textContent=t;
+    transcriptBox.appendChild(d);
+    transcriptBox.scrollTop=transcriptBox.scrollHeight;
   }
-  if (waited > 8000) {
-    clearInterval(sdkTimer);
-    statusText.textContent = "SDK konnte nicht geladen werden";
+
+  async function startVisualizer(stream){
+    audioCtx=new AudioContext();
+    const src=audioCtx.createMediaStreamSource(stream);
+    analyser=audioCtx.createAnalyser();
+    analyser.fftSize=256;
+    const data=new Uint8Array(analyser.frequencyBinCount);
+    src.connect(analyser);
+    const loop=()=>{
+      analyser.getByteTimeDomainData(data);
+      let s=0;
+      for(let i=0;i<data.length;i++){const v=data[i]-128;s+=v*v;}
+      const vol=Math.min(1,Math.sqrt(s/data.length)/50);
+      volFill.style.width=(vol*100)+"%";
+      micBubble.classList.toggle("active",vol>0.15);
+      raf=requestAnimationFrame(loop);
+    }; loop();
   }
-}, 100);
 
-function addMsg(t,c){
-  const d=document.createElement("div");
-  d.className=c; d.textContent=t;
-  transcriptBox.appendChild(d);
-  transcriptBox.scrollTop=transcriptBox.scrollHeight;
-}
+  connectBtn.onclick = async ()=>{
+    try{
+      statusText.textContent="Verbinden…";
+      const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+      await startVisualizer(stream);
 
-async function startVisualizer(stream){
-  audioCtx=new AudioContext();
-  const src=audioCtx.createMediaStreamSource(stream);
-  analyser=audioCtx.createAnalyser();
-  analyser.fftSize=256;
-  const data=new Uint8Array(analyser.frequencyBinCount);
-  src.connect(analyser);
-  const loop=()=>{
-    analyser.getByteTimeDomainData(data);
-    let s=0;
-    for(let i=0;i<data.length;i++){const v=data[i]-128;s+=v*v;}
-    const vol=Math.min(1,Math.sqrt(s/data.length)/50);
-    volFill.style.width=(vol*100)+"%";
-    micBubble.classList.toggle("active",vol>0.15);
-    raf=requestAnimationFrame(loop);
-  }; loop();
-}
+      vapi = new Vapi(PUBLIC_KEY);
+      call = await vapi.start({
+        assistantId: ASSISTANT_ID,
+        audio:{ input:stream, output:true }
+      });
 
-connectBtn.onclick = async ()=>{
-  try{
-    statusText.textContent="Verbinden…";
-    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
-    await startVisualizer(stream);
+      statusText.textContent="Verbunden";
 
-    vapi = new window.Vapi.default(PUBLIC_KEY);
-    call = await vapi.start({
-      assistantId: ASSISTANT_ID,
-      audio:{ input:stream, output:true }
-    });
+      call.on("transcript", e=>{
+        if(e?.text){
+          addMsg((e.role==="user"?"Du: ":"Agent: ")+e.text,
+            e.role==="user"?"msg-user":"msg-agent");
+        }
+      });
 
-    statusText.textContent="Verbunden";
+      call.on("close", ()=>statusText.textContent="Getrennt");
+    }catch(e){
+      console.error(e);
+      statusText.textContent="Verbindung fehlgeschlagen";
+    }
+  };
 
-    call.on("transcript", e=>{
-      if(e?.text){
-        addMsg((e.role==="user"?"Du: ":"Agent: ")+e.text,
-          e.role==="user"?"msg-user":"msg-agent");
-      }
-    });
-
-    call.on("close", ()=>statusText.textContent="Getrennt");
-  }catch(e){
-    console.error(e);
-    statusText.textContent="Verbindung fehlgeschlagen";
-  }
-};
-
-document.getElementById("stopBtn").onclick=()=>{
-  call?.stop(); audioCtx?.close();
-  cancelAnimationFrame(raf);
-  volFill.style.width="0%";
-  micBubble.classList.remove("active");
-  statusText.textContent="Getrennt";
-};
+  document.getElementById("stopBtn").onclick=()=>{
+    call?.stop(); audioCtx?.close();
+    cancelAnimationFrame(raf);
+    volFill.style.width="0%";
+    micBubble.classList.remove("active");
+    statusText.textContent="Getrennt";
+  };
 </script>
 </body>
 </html>
