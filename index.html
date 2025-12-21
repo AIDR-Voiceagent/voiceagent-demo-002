@@ -1,4 +1,4 @@
-<!doctype html>
+<!doctype html> 
 <html lang="de">
 <head>
   <meta charset="utf-8" />
@@ -96,8 +96,8 @@
   </div>
 </div>
 
-<!-- VAPI SDK -->
-<script src="https://unpkg.com/@vapi-ai/web@0.0.12/dist/index.umd.js"></script>
+<!-- ✅ VAPI SDK – FIXED SOURCE -->
+<script src="https://cdn.jsdelivr.net/npm/@vapi-ai/web/dist/index.umd.js"></script>
 
 <script>
 const PUBLIC_KEY = "3857a4fd-9664-470b-b523-759ca2db2753";
@@ -111,18 +111,12 @@ const volFill = document.getElementById("volFill");
 
 let vapi, call, audioCtx, analyser, raf;
 
-// 🔐 SDK WAIT FIX (mit Timeout!)
-let waited = 0;
+// SDK WAIT
 const sdkTimer = setInterval(() => {
-  waited += 100;
   if (window.Vapi && window.Vapi.default) {
     clearInterval(sdkTimer);
     connectBtn.disabled = false;
     statusText.textContent = "Bereit.";
-  }
-  if (waited > 5000) {
-    clearInterval(sdkTimer);
-    statusText.textContent = "SDK konnte nicht geladen werden";
   }
 }, 100);
 
