@@ -84,11 +84,11 @@
     <h1>AI Voice Demo</h1>
 
     <div class="controls">
-      <button id="connectBtn" class="btn" disabled>Verbinden</button>
+      <button id="connectBtn" class="btn">Verbinden</button>
       <button id="stopBtn" class="btn">Stop</button>
     </div>
 
-    <div id="statusText" class="status">SDK wird geladen…</div>
+    <div id="statusText" class="status">Bereit.</div>
     <div id="micBubble" class="mic-bubble">MIC</div>
 
     <div class="volume-bar"><div id="volFill" class="volume-fill"></div></div>
@@ -96,23 +96,20 @@
   </div>
 </div>
 
-<!-- ✅ VAPI SDK – RICHTIG -->
 <script type="module">
-  import Vapi from "https://cdn.jsdelivr.net/npm/@vapi-ai/web/dist/index.js";
+  import Vapi from "https://cdn.jsdelivr.net/npm/@vapi-ai/web@0.0.12/dist/index.js";
 
   const PUBLIC_KEY = "3857a4fd-9664-470b-b523-759ca2db2753";
   const ASSISTANT_ID = "9939aaaf-23ff-490a-8daf-665758ff117b";
 
   const connectBtn = document.getElementById("connectBtn");
+  const stopBtn = document.getElementById("stopBtn");
   const statusText = document.getElementById("statusText");
   const transcriptBox = document.getElementById("transcriptBox");
   const micBubble = document.getElementById("micBubble");
   const volFill = document.getElementById("volFill");
 
   let vapi, call, audioCtx, analyser, raf;
-
-  connectBtn.disabled = false;
-  statusText.textContent = "Bereit.";
 
   function addMsg(t,c){
     const d=document.createElement("div");
@@ -155,8 +152,10 @@
 
       call.on("transcript", e=>{
         if(e?.text){
-          addMsg((e.role==="user"?"Du: ":"Agent: ")+e.text,
-            e.role==="user"?"msg-user":"msg-agent");
+          addMsg(
+            (e.role==="user"?"Du: ":"Agent: ")+e.text,
+            e.role==="user"?"msg-user":"msg-agent"
+          );
         }
       });
 
@@ -167,8 +166,9 @@
     }
   };
 
-  document.getElementById("stopBtn").onclick=()=>{
-    call?.stop(); audioCtx?.close();
+  stopBtn.onclick=()=>{
+    call?.stop();
+    audioCtx?.close();
     cancelAnimationFrame(raf);
     volFill.style.width="0%";
     micBubble.classList.remove("active");
