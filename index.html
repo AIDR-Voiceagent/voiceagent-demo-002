@@ -103,7 +103,6 @@
   const ASSISTANT_ID = "9939aaaf-23ff-490a-8daf-665758ff117b";
 
   const connectBtn = document.getElementById("connectBtn");
-  const stopBtn = document.getElementById("stopBtn");
   const statusText = document.getElementById("statusText");
   const transcriptBox = document.getElementById("transcriptBox");
   const micBubble = document.getElementById("micBubble");
@@ -113,7 +112,8 @@
 
   function addMsg(t,c){
     const d=document.createElement("div");
-    d.className=c; d.textContent=t;
+    d.className=c;
+    d.textContent=t;
     transcriptBox.appendChild(d);
     transcriptBox.scrollTop=transcriptBox.scrollHeight;
   }
@@ -133,7 +133,8 @@
       volFill.style.width=(vol*100)+"%";
       micBubble.classList.toggle("active",vol>0.15);
       raf=requestAnimationFrame(loop);
-    }; loop();
+    };
+    loop();
   }
 
   connectBtn.onclick = async ()=>{
@@ -166,7 +167,7 @@
     }
   };
 
-  stopBtn.onclick=()=>{
+  document.getElementById("stopBtn").onclick=()=>{
     call?.stop();
     audioCtx?.close();
     cancelAnimationFrame(raf);
